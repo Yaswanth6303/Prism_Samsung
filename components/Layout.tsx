@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Activity, User } from "lucide-react";
+import { Home, Trophy, Activity, User, MessageCircle } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,6 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Dashboard", mobileLabel: "Home", icon: Home },
     { href: "/leaderboard", label: "Leaderboard", mobileLabel: "Ranks", icon: Trophy },
     { href: "/activities", label: "Activities", mobileLabel: "Activity", icon: Activity },
+    { href: "/discussion", label: "Discussion", mobileLabel: "Forum", icon: MessageCircle },
     { href: "/profile", label: "Profile", mobileLabel: "Profile", icon: User },
   ];
 
@@ -57,7 +58,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Navigation */}
       <nav className="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-10">
-        <div className="grid grid-cols-4 gap-1 p-2">
+        <div className="grid grid-cols-5 gap-1 p-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
