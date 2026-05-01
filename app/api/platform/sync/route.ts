@@ -6,6 +6,7 @@ import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
 import { User } from '@/lib/models/User'
 import { fetchGitHubSnapshot, fetchLeetCodeSnapshot, type PlatformSnapshot } from '@/lib/platform-sync'
 import { pointsFor } from '@/lib/points'
+import { recalculateAllStreaks } from '@/lib/streak'
 
 export async function POST() {
   const session = await auth()
@@ -64,67 +65,115 @@ export async function POST() {
     }, { status: 400 })
   }
 
-  const today = new Date().toISOString().slice(0, 10)
   let pointsDelta = 0
-  let activityCount = 0
+  let historyUpdated = false
+
+  // Helper to process history
+  async function processHistory(
+    history: Record<string, number>,
+    type: 'github' | 'leetcode',
+    pointType: 'github_commit' | 'leetcode_easy',
+    titleFn: (count: number) => string,
+    details: string
+  ) {
+    for (const [dateStr, count] of Object.entries(history)) {
+      if (count <= 0) continue
+
+      const startOfDay = new Date(`${dateStr}T00:00:00.000Z`)
+      const endOfDay = new Date(`${dateStr}T23:59:59.999Z`)
+      
+      const existing = await Activity.findOne({
+        userId: user._id,
+        type,
+        date: { $gte: startOfDay, $lte: endOfDay }
+      })
+
+      const expectedPoints = pointsFor(pointType, count)
+
+      if (!existing) {
+        await Activity.create({
+          userId: user._id,
+          type,
+          title: titleFn(count),
+          details,
+          date: startOfDay,
+          points: expectedPoints,
+        })
+        
+        await DailyActivityLog.findOneAndUpdate(
+          { userId: user._id.toString(), date: dateStr },
+          { $set: { hasActivity: true }, $inc: { totalCount: count } },
+          { new: true, upsert: true }
+        )
+        pointsDelta += expectedPoints
+        historyUpdated = true
+      } else {
+        // If they did MORE than we previously logged
+        const previousPoints = existing.points
+        if (expectedPoints > previousPoints) {
+          const addedPoints = expectedPoints - previousPoints
+          const addedCount = count - Math.floor(previousPoints / pointsFor(pointType, 1))
+          
+          existing.points = expectedPoints
+          existing.title = titleFn(count)
+          await existing.save()
+
+          await DailyActivityLog.findOneAndUpdate(
+            { userId: user._id.toString(), date: dateStr },
+            { $inc: { totalCount: addedCount } }
+          )
+          pointsDelta += addedPoints
+          historyUpdated = true
+        }
+      }
+    }
+  }
 
   if (snapshot.github) {
-    const oldCount = user.githubContributions ?? 0
-    const newCount = snapshot.github.recentContributions
-    const delta = Math.max(0, newCount - oldCount)
-    if (delta > 0) {
-      const points = pointsFor('github_commit', delta)
-      pointsDelta += points
-      activityCount += delta
-      await Activity.create({
-        userId: user._id,
-        type: 'github',
-        title: `Synced ${delta} GitHub contribution${delta === 1 ? '' : 's'}`,
-        details: snapshot.github.username,
-        date: new Date(),
-        points,
-      })
-    }
-
     user.githubUsername = snapshot.github.username
     user.avatarUrl = snapshot.github.avatarUrl || user.avatarUrl
-    user.githubContributions = newCount
+    user.githubContributions = snapshot.github.recentContributions
     user.githubPublicRepos = snapshot.github.publicRepos
     user.githubFollowers = snapshot.github.followers
+
+    await processHistory(
+      snapshot.github.history,
+      'github',
+      'github_commit',
+      (c) => `Synced ${c} GitHub contribution${c === 1 ? '' : 's'}`,
+      snapshot.github.username
+    )
   }
 
   if (snapshot.leetcode) {
-    const oldCount = user.leetcodeSolved ?? 0
-    const newCount = snapshot.leetcode.totalSolved
-    const delta = Math.max(0, newCount - oldCount)
-    if (delta > 0) {
-      const points = pointsFor('leetcode_easy', delta)
-      pointsDelta += points
-      activityCount += delta
-      await Activity.create({
-        userId: user._id,
-        type: 'leetcode',
-        title: `Synced ${delta} solved LeetCode problem${delta === 1 ? '' : 's'}`,
-        details: snapshot.leetcode.username,
-        date: new Date(),
-        points,
-      })
-    }
-
     user.leetcodeUsername = snapshot.leetcode.username
     if (!user.avatarUrl && snapshot.leetcode.avatarUrl) user.avatarUrl = snapshot.leetcode.avatarUrl
-    user.leetcodeSolved = newCount
+    user.leetcodeSolved = snapshot.leetcode.totalSolved
     user.leetcodeEasySolved = snapshot.leetcode.easySolved
     user.leetcodeMediumSolved = snapshot.leetcode.mediumSolved
     user.leetcodeHardSolved = snapshot.leetcode.hardSolved
+
+    await processHistory(
+      snapshot.leetcode.history,
+      'leetcode',
+      'leetcode_easy',
+      (c) => `Synced ${c} solved LeetCode problem${c === 1 ? '' : 's'}`,
+      snapshot.leetcode.username
+    )
   }
 
-  if (activityCount > 0) {
-    await DailyActivityLog.findOneAndUpdate(
-      { userId: user._id.toString(), date: today },
-      { $set: { hasActivity: true }, $inc: { totalCount: activityCount } },
-      { new: true, upsert: true }
-    )
+  if (historyUpdated) {
+    // Recalculate streak from logs
+    const dailyLogs = await DailyActivityLog.find({ userId: user._id }).lean()
+    const mappedLogs = dailyLogs.map((log) => ({
+      date: log.date,
+      hasActivity: log.hasActivity
+    }))
+    
+    const { currentStreak, bestStreak } = recalculateAllStreaks(mappedLogs)
+
+    user.currentStreak = currentStreak
+    user.longestStreak = bestStreak
   }
 
   user.totalPoints += pointsDelta

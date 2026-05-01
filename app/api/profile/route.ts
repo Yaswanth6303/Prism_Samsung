@@ -4,6 +4,8 @@ import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
 import { User } from '@/lib/models/User'
 
+export const dynamic = 'force-dynamic'
+
 const ProfileBody = z.object({
   name: z.string().min(1).max(80).optional(),
   githubUsername: z.string().max(40).optional().or(z.literal('')),

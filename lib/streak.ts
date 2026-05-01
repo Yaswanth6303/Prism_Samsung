@@ -37,3 +37,45 @@ export function updateStreakFromLogs(input: {
 
   return { currentStreak, bestStreak }
 }
+
+export function recalculateAllStreaks(logs: { date: string; hasActivity: boolean }[]) {
+  const activeDates = new Set(
+    logs.filter(l => l.hasActivity).map(l => l.date)
+  );
+
+  const sortedDates = Array.from(activeDates).sort();
+
+  let bestStreak = 0;
+  let tempStreak = 0;
+  let lastDate: Date | null = null;
+
+  for (const dateStr of sortedDates) {
+    const d = new Date(`${dateStr}T00:00:00.000Z`);
+    if (!lastDate) {
+      tempStreak = 1;
+    } else {
+      const diffTime = d.getTime() - lastDate.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+      if (diffDays === 1) {
+        tempStreak += 1;
+      } else if (diffDays > 1) {
+        tempStreak = 1;
+      }
+    }
+    if (tempStreak > bestStreak) bestStreak = tempStreak;
+    lastDate = d;
+  }
+
+  let currentStreak = 0;
+  const todayKey = dateKey(new Date());
+  const yesterdayKey = prevDateKey(new Date());
+  
+  if (lastDate) {
+    const lastDateKey = dateKey(lastDate);
+    if (lastDateKey === todayKey || lastDateKey === yesterdayKey) {
+      currentStreak = tempStreak;
+    }
+  }
+
+  return { currentStreak, bestStreak };
+}

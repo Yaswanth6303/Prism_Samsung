@@ -24,12 +24,15 @@ type LeetCodeMatchedUser = {
       count: number
     }>
   }
-  profile?: {
-    realName?: string
-    userAvatar?: string
-    ranking?: number
+    profile?: {
+      realName?: string
+      userAvatar?: string
+      ranking?: number
+    }
+    userCalendar?: {
+      submissionCalendar?: string
+    }
   }
-}
 
 export type PlatformSnapshot = {
   github?: {
@@ -40,6 +43,7 @@ export type PlatformSnapshot = {
     publicRepos: number
     followers: number
     recentContributions: number
+    history: Record<string, number>
   }
   leetcode?: {
     username: string
@@ -50,6 +54,7 @@ export type PlatformSnapshot = {
     easySolved: number
     mediumSolved: number
     hardSolved: number
+    history: Record<string, number>
   }
 }
 
@@ -75,14 +80,21 @@ export async function fetchGitHubSnapshot(username: string) {
   const user = await userResponse.json() as GitHubUserResponse
 
   let recentContributions = 0
+  const history: Record<string, number> = {}
   if (eventsResponse.ok) {
     const events = await eventsResponse.json() as GitHubEvent[]
-    recentContributions = events.reduce((total, event) => {
-      if (event.type === 'PushEvent') return total + (event.payload?.commits?.length || 1)
-      if (event.type === 'PullRequestEvent' && ['opened', 'closed', 'reopened'].includes(event.payload?.action || '')) return total + 1
-      if (event.type === 'IssuesEvent' && event.payload?.action === 'opened') return total + 1
-      return total
-    }, 0)
+    events.forEach(event => {
+      let count = 0
+      if (event.type === 'PushEvent') count = (event.payload?.commits?.length || 1)
+      if (event.type === 'PullRequestEvent' && ['opened', 'closed', 'reopened'].includes(event.payload?.action || '')) count = 1
+      if (event.type === 'IssuesEvent' && event.payload?.action === 'opened') count = 1
+      
+      if (count > 0 && event.created_at) {
+        recentContributions += count
+        const date = event.created_at.split('T')[0]
+        history[date] = (history[date] || 0) + count
+      }
+    })
   }
 
   return {
@@ -93,6 +105,7 @@ export async function fetchGitHubSnapshot(username: string) {
     publicRepos: user.public_repos ?? 0,
     followers: user.followers ?? 0,
     recentContributions,
+    history,
   }
 }
 
@@ -123,6 +136,9 @@ export async function fetchLeetCodeSnapshot(username: string) {
               userAvatar
               ranking
             }
+            userCalendar {
+              submissionCalendar
+            }
           }
         }
       `,
@@ -140,6 +156,17 @@ export async function fetchLeetCodeSnapshot(username: string) {
 
   const solved = new Map((user.submitStatsGlobal?.acSubmissionNum ?? []).map((item) => [item.difficulty, item.count]))
 
+  const history: Record<string, number> = {}
+  if (user.userCalendar?.submissionCalendar) {
+    try {
+      const cal = JSON.parse(user.userCalendar.submissionCalendar)
+      for (const [timestamp, count] of Object.entries(cal)) {
+        const date = new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0]
+        history[date] = (history[date] || 0) + (count as number)
+      }
+    } catch (e) {}
+  }
+
   return {
     username: user.username || cleanUsername,
     realName: user.profile?.realName,
@@ -149,5 +176,6 @@ export async function fetchLeetCodeSnapshot(username: string) {
     easySolved: solved.get('Easy') ?? 0,
     mediumSolved: solved.get('Medium') ?? 0,
     hardSolved: solved.get('Hard') ?? 0,
+    history,
   }
 }

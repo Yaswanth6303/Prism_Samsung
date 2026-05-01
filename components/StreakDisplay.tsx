@@ -59,11 +59,11 @@ export function StreakDisplay() {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Flame className="w-6 h-6 text-orange-500" />
+          <Flame className={`w-6 h-6 ${currentStreak > 0 ? 'text-orange-500' : 'text-gray-400'}`} />
           <h2 className="text-lg font-semibold text-gray-900">Current Streak</h2>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-orange-600">{currentStreak}</p>
+          <p className={`text-3xl font-bold ${currentStreak > 0 ? 'text-orange-600' : 'text-gray-500'}`}>{currentStreak}</p>
           <p className="text-sm text-gray-500">days</p>
         </div>
       </div>
