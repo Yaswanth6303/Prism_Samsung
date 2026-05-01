@@ -20,6 +20,10 @@ export interface IUser extends Document {
   leetcodeMediumSolved: number;
   leetcodeHardSolved: number;
   lastPlatformSyncAt?: Date;
+  openaiKey?: string;
+  anthropicKey?: string;
+  geminiKey?: string;
+  githubPat?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -43,6 +47,10 @@ const UserSchema = new Schema<IUser>(
     leetcodeMediumSolved: { type: Number, default: 0 },
     leetcodeHardSolved: { type: Number, default: 0 },
     lastPlatformSyncAt: { type: Date },
+    openaiKey: { type: String },
+    anthropicKey: { type: String },
+    geminiKey: { type: String },
+    githubPat: { type: String },
   },
   { timestamps: true }
 );

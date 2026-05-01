@@ -58,6 +58,10 @@ export function Profile() {
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [keys, setKeys] = useState({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '' })
+  const [hasKeys, setHasKeys] = useState({ hasOpenAI: false, hasAnthropic: false, hasGemini: false, hasGithubPat: false })
+  const [keysSaving, setKeysSaving] = useState(false)
+  const [keysStatus, setKeysStatus] = useState('')
 
   async function loadProfile() {
     const response = await fetch('/api/profile')
@@ -70,6 +74,13 @@ export function Profile() {
         githubUsername: json.profile.githubUsername || '',
         leetcodeUsername: json.profile.leetcodeUsername || '',
       })
+    }
+    const keysRes = await fetch('/api/profile/keys', { cache: 'no-store' })
+    if (keysRes.ok) {
+      const kjson = await keysRes.json()
+      if (kjson?.ok) {
+        setHasKeys({ hasOpenAI: kjson.hasOpenAI, hasAnthropic: kjson.hasAnthropic, hasGemini: kjson.hasGemini, hasGithubPat: kjson.hasGithubPat })
+      }
     }
   }
 
@@ -120,6 +131,40 @@ export function Profile() {
       setStatus(error instanceof Error ? error.message : 'Could not sync platforms')
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function saveKeys() {
+    setKeysSaving(true)
+    setKeysStatus('')
+    try {
+      const payload: any = {}
+      if (keys.openaiKey !== '') payload.openaiKey = keys.openaiKey
+      if (keys.anthropicKey !== '') payload.anthropicKey = keys.anthropicKey
+      if (keys.geminiKey !== '') payload.geminiKey = keys.geminiKey
+      if (keys.githubPat !== '') payload.githubPat = keys.githubPat
+      
+      if (Object.keys(payload).length === 0) {
+        setKeysStatus('Enter a key to save')
+        setKeysSaving(false)
+        return
+      }
+
+      const response = await fetch('/api/profile/keys', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const json = await response.json()
+      if (!response.ok || !json?.ok) throw new Error(json?.error || 'Could not save keys')
+      
+      setHasKeys({ hasOpenAI: json.hasOpenAI, hasAnthropic: json.hasAnthropic, hasGemini: json.hasGemini, hasGithubPat: json.hasGithubPat })
+      setKeys({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '' })
+      setKeysStatus('Keys saved successfully')
+    } catch (error) {
+      setKeysStatus(error instanceof Error ? error.message : 'Could not save keys')
+    } finally {
+      setKeysSaving(false)
     }
   }
 
@@ -221,12 +266,74 @@ export function Profile() {
         {status && <p className="mt-4 text-sm text-gray-600">{status}</p>}
 
         <button
-          onClick={saveProfile}
+          onClick={() => saveProfile()}
           disabled={saving}
           className="mt-6 w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-60"
         >
           {saving ? <Settings className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save Profile
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl p-6 border border-gray-200 mt-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">AI Provider Keys</h2>
+        <p className="text-sm text-gray-500 mb-6">Securely store your API keys to power the ClawMind study agent. Keys are encrypted in the database.</p>
+        
+        <div className="grid sm:grid-cols-3 gap-4">
+          <label className="block">
+            <span className="text-sm text-gray-600">OpenAI Key {hasKeys.hasOpenAI && <span className="text-green-500 font-medium">(Saved)</span>}</span>
+            <input
+              type="password"
+              value={keys.openaiKey}
+              onChange={(event) => setKeys((prev) => ({ ...prev, openaiKey: event.target.value }))}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={hasKeys.hasOpenAI ? "********" : "sk-..."}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-gray-600">Anthropic Key {hasKeys.hasAnthropic && <span className="text-green-500 font-medium">(Saved)</span>}</span>
+            <input
+              type="password"
+              value={keys.anthropicKey}
+              onChange={(event) => setKeys((prev) => ({ ...prev, anthropicKey: event.target.value }))}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={hasKeys.hasAnthropic ? "********" : "sk-ant-..."}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-gray-600">Gemini Key {hasKeys.hasGemini && <span className="text-green-500 font-medium">(Saved)</span>}</span>
+            <input
+              type="password"
+              value={keys.geminiKey}
+              onChange={(event) => setKeys((prev) => ({ ...prev, geminiKey: event.target.value }))}
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={hasKeys.hasGemini ? "********" : "AIza..."}
+            />
+          </label>
+        </div>
+
+        <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-3">GitHub Integration</h3>
+        <p className="text-sm text-gray-500 mb-4">Add a GitHub Personal Access Token (PAT) to fetch your full year of contribution history for accurate streaks.</p>
+        <label className="block max-w-md">
+          <span className="text-sm text-gray-600">GitHub PAT {hasKeys.hasGithubPat && <span className="text-green-500 font-medium">(Saved)</span>}</span>
+          <input
+            type="password"
+            value={keys.githubPat}
+            onChange={(event) => setKeys((prev) => ({ ...prev, githubPat: event.target.value }))}
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={hasKeys.hasGithubPat ? "********" : "ghp_..."}
+          />
+        </label>
+
+        {keysStatus && <p className={`mt-4 text-sm ${keysStatus.includes('successfully') ? 'text-green-600' : 'text-gray-600'}`}>{keysStatus}</p>}
+
+        <button
+          onClick={saveKeys}
+          disabled={keysSaving}
+          className="mt-6 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 disabled:opacity-60"
+        >
+          {keysSaving ? <Settings className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Update Keys
         </button>
       </div>
     </div>

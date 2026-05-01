@@ -98,11 +98,25 @@ export function StreakDisplay() {
         })}
       </div>
 
-      <div className="mt-4 p-3 bg-orange-50 rounded-lg">
-        <p className="text-sm text-orange-800 text-center">
-          Keep it up! You are {Math.max(0, longestStreak - currentStreak)} days away from your best streak!
-        </p>
-      </div>
+      {currentStreak > 0 && currentStreak >= longestStreak ? (
+        <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+          <p className="text-sm text-orange-800 text-center font-medium">
+            🔥 You are on your best streak yet! Keep the flame burning!
+          </p>
+        </div>
+      ) : currentStreak > 0 ? (
+        <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+          <p className="text-sm text-orange-800 text-center">
+            Keep it up! You are {Math.max(0, longestStreak - currentStreak)} days away from your best streak!
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-500 text-center">
+            Log an activity today to start your streak!
+          </p>
+        </div>
+      )}
     </div>
   );
 }

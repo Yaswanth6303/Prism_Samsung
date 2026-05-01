@@ -7,6 +7,7 @@ import { User } from '@/lib/models/User'
 import { fetchGitHubSnapshot, fetchLeetCodeSnapshot, type PlatformSnapshot } from '@/lib/platform-sync'
 import { pointsFor } from '@/lib/points'
 import { recalculateAllStreaks } from '@/lib/streak'
+import { decrypt } from '@/lib/encryption'
 
 export async function POST() {
   const session = await auth()
@@ -26,7 +27,8 @@ export async function POST() {
 
   if (user.githubUsername) {
     try {
-      snapshot.github = await fetchGitHubSnapshot(user.githubUsername)
+      const pat = user.githubPat ? decrypt(user.githubPat) : undefined
+      snapshot.github = await fetchGitHubSnapshot(user.githubUsername, pat)
       results.push({
         provider: 'github',
         ok: true,
@@ -68,7 +70,8 @@ export async function POST() {
   let pointsDelta = 0
   let historyUpdated = false
 
-  // Helper to process history
+  // Helper to process history — user is guaranteed non-null at this point
+  const userId = user._id
   async function processHistory(
     history: Record<string, number>,
     type: 'github' | 'leetcode',
@@ -83,7 +86,7 @@ export async function POST() {
       const endOfDay = new Date(`${dateStr}T23:59:59.999Z`)
       
       const existing = await Activity.findOne({
-        userId: user._id,
+        userId: userId,
         type,
         date: { $gte: startOfDay, $lte: endOfDay }
       })
@@ -92,7 +95,7 @@ export async function POST() {
 
       if (!existing) {
         await Activity.create({
-          userId: user._id,
+          userId: userId,
           type,
           title: titleFn(count),
           details,
@@ -101,7 +104,7 @@ export async function POST() {
         })
         
         await DailyActivityLog.findOneAndUpdate(
-          { userId: user._id.toString(), date: dateStr },
+          { userId: userId.toString(), date: dateStr },
           { $set: { hasActivity: true }, $inc: { totalCount: count } },
           { new: true, upsert: true }
         )
@@ -119,7 +122,7 @@ export async function POST() {
           await existing.save()
 
           await DailyActivityLog.findOneAndUpdate(
-            { userId: user._id.toString(), date: dateStr },
+            { userId: userId.toString(), date: dateStr },
             { $inc: { totalCount: addedCount } }
           )
           pointsDelta += addedPoints

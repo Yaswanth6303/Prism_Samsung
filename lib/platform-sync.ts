@@ -64,12 +64,63 @@ function assertOk(response: Response, service: string) {
   }
 }
 
-export async function fetchGitHubSnapshot(username: string) {
+async function fetchGitHubGraphQLHistory(username: string, pat: string): Promise<Record<string, number>> {
+  const history: Record<string, number> = {}
+  try {
+    const now = new Date()
+    const from = new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString()
+    const to = now.toISOString()
+
+    const response = await fetch('https://api.github.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${pat}`,
+      },
+      body: JSON.stringify({
+        query: `
+          query($username: String!, $from: DateTime!, $to: DateTime!) {
+            user(login: $username) {
+              contributionsCollection(from: $from, to: $to) {
+                contributionCalendar {
+                  weeks {
+                    contributionDays {
+                      date
+                      contributionCount
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: { username, from, to },
+      }),
+    })
+
+    if (!response.ok) return history
+    const json = await response.json() as any
+    const weeks = json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? []
+    for (const week of weeks) {
+      for (const day of week.contributionDays ?? []) {
+        if (day.contributionCount > 0) {
+          history[day.date] = day.contributionCount
+        }
+      }
+    }
+  } catch (error) {
+    console.error('GitHub GraphQL fetch failed:', error)
+  }
+  return history
+}
+
+export async function fetchGitHubSnapshot(username: string, pat?: string) {
   const cleanUsername = username.trim()
-  const headers = {
+  const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   }
+  if (pat) headers.Authorization = `Bearer ${pat}`
 
   const [userResponse, eventsResponse] = await Promise.all([
     fetch(`https://api.github.com/users/${encodeURIComponent(cleanUsername)}`, { headers, cache: 'no-store' }),
@@ -80,7 +131,15 @@ export async function fetchGitHubSnapshot(username: string) {
   const user = await userResponse.json() as GitHubUserResponse
 
   let recentContributions = 0
-  const history: Record<string, number> = {}
+  let history: Record<string, number> = {}
+
+  // If PAT is available, use GraphQL for full year of history
+  if (pat) {
+    history = await fetchGitHubGraphQLHistory(cleanUsername, pat)
+    recentContributions = Object.values(history).reduce((sum, c) => sum + c, 0)
+  }
+
+  // Also parse REST events (merges with GraphQL data if both present)
   if (eventsResponse.ok) {
     const events = await eventsResponse.json() as GitHubEvent[]
     events.forEach(event => {
@@ -90,9 +149,12 @@ export async function fetchGitHubSnapshot(username: string) {
       if (event.type === 'IssuesEvent' && event.payload?.action === 'opened') count = 1
       
       if (count > 0 && event.created_at) {
-        recentContributions += count
         const date = event.created_at.split('T')[0]
-        history[date] = (history[date] || 0) + count
+        // Only add REST data if GraphQL didn't already cover it (GraphQL is authoritative)
+        if (!pat) {
+          recentContributions += count
+          history[date] = (history[date] || 0) + count
+        }
       }
     })
   }

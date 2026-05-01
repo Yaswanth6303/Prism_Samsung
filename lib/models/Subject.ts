@@ -14,12 +14,20 @@ export interface INote {
   }>;
 }
 
+export interface IWhiteboard {
+  _id?: mongoose.Types.ObjectId;
+  title?: string;
+  image: string;
+  createdDate: Date;
+}
+
 export interface ISubject extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
   color: string;
   notesCount: number;
   notes: INote[];
+  whiteboards: IWhiteboard[];
 }
 
 const NoteSchema = new Schema<INote>({
@@ -37,6 +45,12 @@ const NoteSchema = new Schema<INote>({
   ],
 });
 
+const WhiteboardSchema = new Schema<IWhiteboard>({
+  title: { type: String },
+  image: { type: String, required: true },
+  createdDate: { type: Date, default: Date.now },
+});
+
 const SubjectSchema = new Schema<ISubject>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -44,6 +58,7 @@ const SubjectSchema = new Schema<ISubject>(
     color: { type: String, required: true },
     notesCount: { type: Number, default: 0 },
     notes: [NoteSchema],
+    whiteboards: { type: [WhiteboardSchema], default: [] },
   },
   { timestamps: true }
 );
