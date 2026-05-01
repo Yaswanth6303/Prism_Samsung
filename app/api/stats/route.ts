@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/db'
-import User from '@/models/User'
-import ActivityEvent from '@/models/ActivityEvent'
+import connectToDB from '@/lib/mongodb'
+import { User } from '@/lib/models/User'
+import { Activity } from '@/lib/models/Activity'
+import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -19,7 +20,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 })
     }
 
-    const activityCount = await ActivityEvent.countDocuments({ userId })
+    const activityCount = await Activity.countDocuments({ userId })
+    const dailyLogs = await DailyActivityLog.find({ userId }).lean()
+    const higherRankedUsers = await User.countDocuments({ totalPoints: { $gt: user.totalPoints ?? 0 } })
 
     return NextResponse.json({
       ok: true,
@@ -27,8 +30,19 @@ export async function GET(request: Request) {
         userId,
         totalPoints: user.totalPoints,
         currentStreak: user.currentStreak,
-        bestStreak: user.bestStreak,
+        longestStreak: user.longestStreak,
+        rank: higherRankedUsers + 1,
+        githubContributions: user.githubContributions,
+        githubPublicRepos: user.githubPublicRepos ?? 0,
+        githubFollowers: user.githubFollowers ?? 0,
+        leetcodeSolved: user.leetcodeSolved,
+        leetcodeEasySolved: user.leetcodeEasySolved ?? 0,
+        leetcodeMediumSolved: user.leetcodeMediumSolved ?? 0,
+        leetcodeHardSolved: user.leetcodeHardSolved ?? 0,
+        gymSessions: user.gymSessions,
+        joggingDistance: user.joggingDistance,
         activityCount,
+        dailyLogCount: dailyLogs.length,
       },
     })
   } catch (error) {

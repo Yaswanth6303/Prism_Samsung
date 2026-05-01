@@ -1,10 +1,17 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface INote {
+  _id?: mongoose.Types.ObjectId;
   title: string;
   content?: string;
   createdDate: Date;
   hasQuiz: boolean;
+  quiz?: Array<{
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    explanation: string;
+  }>;
 }
 
 export interface ISubject extends Document {
@@ -20,6 +27,14 @@ const NoteSchema = new Schema<INote>({
   content: { type: String },
   createdDate: { type: Date, default: Date.now },
   hasQuiz: { type: Boolean, default: false },
+  quiz: [
+    {
+      question: { type: String, required: true },
+      options: [{ type: String, required: true }],
+      correctAnswer: { type: String, required: true },
+      explanation: { type: String, required: true },
+    },
+  ],
 });
 
 const SubjectSchema = new Schema<ISubject>(

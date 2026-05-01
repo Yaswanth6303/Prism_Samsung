@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import connectToDB from '@/lib/mongodb'
+import { User } from '@/lib/models/User'
 import { getLeaderboard, type Metric, type Period } from '@/lib/feature-store'
 
 const METRICS: Metric[] = ['points', 'github', 'leetcode', 'streak']
@@ -7,18 +10,52 @@ const PERIODS: Period[] = ['alltime', 'weekly', 'monthly']
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
 
-  const metric = (searchParams.get('metric') || 'points') as Metric
-  const period = (searchParams.get('period') || 'alltime') as Period
-  const userId = searchParams.get('userId') || 'demo-user'
-  const collegeId = searchParams.get('collegeId') || 'default-college'
+  // mode=store uses in-memory feature-store; default uses DB
+  const mode = searchParams.get('mode')
 
-  if (!METRICS.includes(metric)) {
-    return NextResponse.json({ ok: false, error: 'metric must be points|github|leetcode|streak' }, { status: 400 })
+  if (mode === 'store') {
+    const metric = (searchParams.get('metric') || 'points') as Metric
+    const period = (searchParams.get('period') || 'alltime') as Period
+    const userId = searchParams.get('userId') || 'demo-user'
+    const collegeId = searchParams.get('collegeId') || 'default-college'
+
+    if (!METRICS.includes(metric)) {
+      return NextResponse.json({ ok: false, error: 'metric must be points|github|leetcode|streak' }, { status: 400 })
+    }
+
+    if (!PERIODS.includes(period)) {
+      return NextResponse.json({ ok: false, error: 'period must be alltime|weekly|monthly' }, { status: 400 })
+    }
+
+    return NextResponse.json({ ok: true, leaderboard: getLeaderboard({ metric, period, collegeId, userId }) })
   }
 
-  if (!PERIODS.includes(period)) {
-    return NextResponse.json({ ok: false, error: 'period must be alltime|weekly|monthly' }, { status: 400 })
+  // DB-backed leaderboard
+  const session = await auth()
+  await connectToDB()
+  const users = await User.find().sort({ totalPoints: -1, createdAt: 1 }).limit(20).lean()
+
+  const leaderboard = users.map((user, index) => ({
+    userId: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    totalPoints: user.totalPoints ?? 0,
+    currentStreak: user.currentStreak ?? 0,
+    rank: index + 1,
+    isCurrentUser: session?.user?.id === user._id.toString(),
+  }))
+
+  if (leaderboard.length === 0 && session?.user?.id) {
+    leaderboard.push({
+      userId: session.user.id,
+      name: session.user.name || 'You',
+      email: session.user.email || '',
+      totalPoints: 0,
+      currentStreak: 0,
+      rank: 1,
+      isCurrentUser: true,
+    })
   }
 
-  return NextResponse.json({ ok: true, leaderboard: getLeaderboard({ metric, period, collegeId, userId }) })
+  return NextResponse.json({ ok: true, leaderboard })
 }

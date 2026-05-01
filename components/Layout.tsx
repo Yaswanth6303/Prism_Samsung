@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { Home, Trophy, Activity, User } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { status } = useSession();
+  const isLogin = pathname === "/login";
 
   const navItems = [
     { href: "/", label: "Dashboard", mobileLabel: "Home", icon: Home },
@@ -31,6 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Desktop Navigation */}
+            {!isLogin && (
             <nav className="hidden md:flex gap-1">
               {navItems.map((item) => (
                 <Link
@@ -45,7 +49,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {item.label}
                 </Link>
               ))}
+              {status === 'authenticated' && (
+                <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Sign out
+                </button>
+              )}
             </nav>
+            )}
           </div>
         </div>
       </header>
@@ -56,6 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile Navigation */}
+      {!isLogin && (
       <nav className="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-10">
         <div className="grid grid-cols-4 gap-1 p-2">
           {navItems.map((item) => (
@@ -73,6 +87,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           ))}
         </div>
       </nav>
+      )}
     </div>
   );
 }

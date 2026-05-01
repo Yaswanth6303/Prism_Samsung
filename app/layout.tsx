@@ -4,6 +4,7 @@ import "./globals.css";
 import "./tailwind.css";
 import "./theme.css";
 import { Layout } from "@/components/Layout";
+import Providers from './providers'
 // import "./default_shadcn_theme.css"; // optional
 
 const geistSans = Geist({
@@ -32,7 +33,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Layout>{children}</Layout>
+        <Providers>
+          <Layout>{children}</Layout>
+        </Providers>
       </body>
     </html>
   );

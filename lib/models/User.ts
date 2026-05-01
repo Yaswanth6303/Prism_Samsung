@@ -11,6 +11,15 @@ export interface IUser extends Document {
   leetcodeSolved: number;
   gymSessions: number;
   joggingDistance: number;
+  githubUsername?: string;
+  leetcodeUsername?: string;
+  avatarUrl?: string;
+  githubPublicRepos: number;
+  githubFollowers: number;
+  leetcodeEasySolved: number;
+  leetcodeMediumSolved: number;
+  leetcodeHardSolved: number;
+  lastPlatformSyncAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -25,6 +34,15 @@ const UserSchema = new Schema<IUser>(
     leetcodeSolved: { type: Number, default: 0 },
     gymSessions: { type: Number, default: 0 },
     joggingDistance: { type: Number, default: 0 },
+    githubUsername: { type: String },
+    leetcodeUsername: { type: String },
+    avatarUrl: { type: String },
+    githubPublicRepos: { type: Number, default: 0 },
+    githubFollowers: { type: Number, default: 0 },
+    leetcodeEasySolved: { type: Number, default: 0 },
+    leetcodeMediumSolved: { type: Number, default: 0 },
+    leetcodeHardSolved: { type: Number, default: 0 },
+    lastPlatformSyncAt: { type: Date },
   },
   { timestamps: true }
 );

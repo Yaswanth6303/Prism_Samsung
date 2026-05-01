@@ -1,12 +1,53 @@
+"use client"
+
+import { useState, useEffect } from 'react'
 import { TrendingUp, Flame, Trophy, Code2, Dumbbell, Footprints, BrainCircuit, ArrowRight } from "lucide-react";
 import { GithubIcon } from "./icons/GithubIcon";
 import Link from "next/link";
-import { currentUserStats, recentActivities } from "./data/mockData";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { StreakDisplay } from "./StreakDisplay";
 import { ActivityCard } from "./ActivityCard";
+import { Leaderboard } from './Leaderboard'
+import { ClawMind } from './ClawMind'
 
 export function Dashboard() {
+  const [stats, setStats] = useState({
+    totalPoints: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    rank: 0,
+    githubContributions: 0,
+    leetcodeSolved: 0,
+    gymSessions: 0,
+    joggingDistance: 0,
+  })
+  const [activities, setActivities] = useState<any[]>([])
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const sres = await fetch('/api/stats')
+        if (sres.ok) {
+          const json = await sres.json()
+          if (json?.ok && json.stats) setStats((prev) => ({ ...prev, ...json.stats }))
+        }
+      } catch (e) {
+        // ignore - keep mock data
+      }
+
+      try {
+        const ares = await fetch('/api/activities')
+        if (ares.ok) {
+          const json = await ares.json()
+          if (json?.ok && Array.isArray(json.activities)) {
+            setActivities(json.activities.slice(0, 5))
+          }
+        }
+      } catch (e) {}
+    }
+    load()
+  }, [])
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
       {/* ClawMind Feature Card */}
@@ -36,7 +77,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Points</p>
-              <p className="text-2xl font-semibold text-gray-900">{currentUserStats.totalPoints}</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.totalPoints}</p>
             </div>
           </div>
         </div>
@@ -48,7 +89,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Current Streak</p>
-              <p className="text-2xl font-semibold text-gray-900">{currentUserStats.currentStreak}</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.currentStreak}</p>
             </div>
           </div>
         </div>
@@ -60,7 +101,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">College Rank</p>
-              <p className="text-2xl font-semibold text-gray-900">#{currentUserStats.rank}</p>
+              <p className="text-2xl font-semibold text-gray-900">#{stats.rank}</p>
             </div>
           </div>
         </div>
@@ -72,7 +113,7 @@ export function Dashboard() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Best Streak</p>
-              <p className="text-2xl font-semibold text-gray-900">{currentUserStats.longestStreak}</p>
+              <p className="text-2xl font-semibold text-gray-900">{stats.longestStreak}</p>
             </div>
           </div>
         </div>
@@ -85,7 +126,7 @@ export function Dashboard() {
             <GithubIcon className="w-4 h-4 text-gray-700" />
             <span className="text-sm text-gray-600">GitHub</span>
           </div>
-          <p className="text-xl font-semibold text-gray-900">{currentUserStats.githubContributions}</p>
+          <p className="text-xl font-semibold text-gray-900">{stats.githubContributions}</p>
           <p className="text-xs text-gray-500">contributions</p>
         </div>
 
@@ -94,7 +135,7 @@ export function Dashboard() {
             <Code2 className="w-4 h-4 text-gray-700" />
             <span className="text-sm text-gray-600">LeetCode</span>
           </div>
-          <p className="text-xl font-semibold text-gray-900">{currentUserStats.leetcodeSolved}</p>
+          <p className="text-xl font-semibold text-gray-900">{stats.leetcodeSolved}</p>
           <p className="text-xs text-gray-500">problems solved</p>
         </div>
 
@@ -103,7 +144,7 @@ export function Dashboard() {
             <Dumbbell className="w-4 h-4 text-gray-700" />
             <span className="text-sm text-gray-600">Gym</span>
           </div>
-          <p className="text-xl font-semibold text-gray-900">{currentUserStats.gymSessions}</p>
+          <p className="text-xl font-semibold text-gray-900">{stats.gymSessions}</p>
           <p className="text-xs text-gray-500">sessions</p>
         </div>
 
@@ -112,23 +153,36 @@ export function Dashboard() {
             <Footprints className="w-4 h-4 text-gray-700" />
             <span className="text-sm text-gray-600">Jogging</span>
           </div>
-          <p className="text-xl font-semibold text-gray-900">{currentUserStats.joggingDistance}km</p>
+          <p className="text-xl font-semibold text-gray-900">{stats.joggingDistance}km</p>
           <p className="text-xs text-gray-500">distance</p>
         </div>
       </div>
 
       {/* Streak Display */}
-      <StreakDisplay />
-
-      {/* Activity Heatmap */}
-      <ActivityHeatmap />
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6"> */}
+        <div className="lg:col-span-2">
+          <StreakDisplay />
+          <ActivityHeatmap />
+        </div>
+        {/* <div className="lg:col-span-1">
+          <Leaderboard />
+          <ClawMind />
+        </div> */}
+      {/* </div> */}
 
       {/* Recent Activities */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h2>
         <div className="space-y-3">
-          {recentActivities.slice(0, 5).map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
+          {activities.slice(0, 5).map((activity) => (
+            <ActivityCard key={activity.id ?? activity._id} activity={{
+              id: activity.id ?? activity._id,
+              type: activity.type,
+              title: activity.title,
+              date: activity.date || activity.createdAt || activity.dateString,
+              points: activity.points ?? activity.value ?? 0,
+              details: activity.details,
+            }} />
           ))}
         </div>
       </div>

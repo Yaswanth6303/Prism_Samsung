@@ -1,21 +1,57 @@
 import { NextResponse } from 'next/server'
-import { createDirectory, listDirectories } from '@/lib/feature-store'
+import { auth } from '@/lib/auth'
+import connectToDB from '@/lib/mongodb'
+import { Subject } from '@/lib/models/Subject'
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const userId = searchParams.get('userId') || 'demo-user'
-  return NextResponse.json({ ok: true, directories: listDirectories(userId) })
+const COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500']
+
+function serializeSubject(subject: {
+  _id: { toString(): string }
+  name: string
+  color: string
+  notesCount?: number
+  notes?: unknown[]
+}) {
+  return {
+    id: subject._id.toString(),
+    name: subject.name,
+    color: subject.color,
+    notesCount: subject.notesCount ?? subject.notes?.length ?? 0,
+  }
+}
+
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  }
+
+  await connectToDB()
+  const subjects = await Subject.find({ userId: session.user.id }).sort({ updatedAt: -1 }).lean()
+  return NextResponse.json({ ok: true, directories: subjects.map(serializeSubject), subjects: subjects.map(serializeSubject) })
 }
 
 export async function POST(request: Request) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
-    const userId = body.userId || 'demo-user'
     if (!body.name) {
       return NextResponse.json({ ok: false, error: 'name is required' }, { status: 400 })
     }
-    const directory = createDirectory({ userId, name: body.name, color: body.color })
-    return NextResponse.json({ ok: true, directory })
+
+    await connectToDB()
+    const subject = await Subject.create({
+      userId: session.user.id,
+      name: body.name,
+      color: body.color || COLORS[Math.floor(Math.random() * COLORS.length)],
+      notes: [],
+    })
+
+    return NextResponse.json({ ok: true, directory: serializeSubject(subject), subject: serializeSubject(subject) })
   } catch {
     return NextResponse.json({ ok: false, error: 'invalid request body' }, { status: 400 })
   }

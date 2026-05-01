@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB || "prism_samsung";
 
 if (!MONGODB_URI) {
   throw new Error(
@@ -13,11 +14,17 @@ if (!MONGODB_URI) {
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+type CachedConnection = {
+  conn: typeof mongoose | null
+  promise: Promise<typeof mongoose> | null
 }
+
+const globalForMongoose = global as typeof globalThis & {
+  mongoose?: CachedConnection
+}
+
+const cached = globalForMongoose.mongoose ?? { conn: null, promise: null };
+globalForMongoose.mongoose = cached;
 
 async function connectToDatabase() {
   if (cached.conn) {
@@ -27,6 +34,8 @@ async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      dbName: MONGODB_DB,
+      serverSelectionTimeoutMS: 5000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {

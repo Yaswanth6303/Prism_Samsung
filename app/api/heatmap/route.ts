@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/db'
-import DailyActivityLog from '@/models/DailyActivityLog'
+import connectToDB from '@/lib/mongodb'
+import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
 
 export async function GET(request: Request) {
   try {
@@ -21,17 +21,16 @@ export async function GET(request: Request) {
 
     await connectToDB()
 
-    const startOfYear = `${year}-01-01`
-    const endOfYear = `${year}-12-31`
-
     const logs = await DailyActivityLog.find({
       userId,
-      date: { $gte: startOfYear, $lte: endOfYear },
-    }).lean()
+      date: { $gte: `${year}-01-01`, $lte: `${year}-12-31` },
+    })
+      .sort({ date: 1 })
+      .lean()
 
-    const heatmapData = logs.map((l) => ({
-      date: l.date,
-      count: l.totalCount,
+    const heatmapData = logs.map((log) => ({
+      date: log.date,
+      count: log.totalCount,
     }))
 
     return NextResponse.json({ ok: true, year, data: heatmapData })
