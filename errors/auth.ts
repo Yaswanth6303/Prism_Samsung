@@ -1,8 +1,4 @@
-type AuthError = {
-  code?: string;
-  message?: string;
-  status?: number;
-};
+import type { AuthError } from "@/types";
 
 export function getSignUpErrorMessage(error: AuthError): string {
   switch (error.code) {
