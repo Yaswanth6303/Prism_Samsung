@@ -110,7 +110,7 @@ export function Leaderboard() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+        <div className="bg-linear-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="w-8 h-8" />
             <h1 className="text-2xl font-semibold">College Leaderboard</h1>

@@ -1,7 +1,16 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { TrendingUp, Flame, Trophy, Code2, Dumbbell, Footprints, BrainCircuit, ArrowRight } from "lucide-react";
+import {
+  TrendingUp,
+  Flame,
+  Trophy,
+  Code2,
+  Dumbbell,
+  Footprints,
+  BrainCircuit,
+  ArrowRight,
+} from "lucide-react";
 import { GithubIcon } from "./icons/GithubIcon";
 import Link from "next/link";
 import { ActivityHeatmap } from "./ActivityHeatmap";
@@ -52,7 +61,7 @@ export function Dashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
       {/* ClawMind Feature Card */}
       <Link href="/study" className="block mb-6">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
+        <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -60,7 +69,9 @@ export function Dashboard() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold mb-1">ClawMind</h2>
-                <p className="text-indigo-100 text-sm">AI-powered study assistant with Notes, Quizzes and Whiteboard</p>
+                <p className="text-indigo-100 text-sm">
+                  AI-powered study assistant with Notes, Quizzes and Whiteboard
+                </p>
               </div>
             </div>
             <ArrowRight className="w-6 h-6" />

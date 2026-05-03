@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Controller, useForm } from "react-hook-form";
@@ -74,8 +69,8 @@ export default function SignupPage() {
         },
         {
           onSuccess: () => {
-            toast.success("Account created successfully!");
-            router.push("/");
+            toast.success("Account created! Please verify your email.");
+            router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
           },
           onError: (ctx) => {
             const message = getSignUpErrorMessage(ctx.error);
@@ -108,7 +103,7 @@ export default function SignupPage() {
 
       {/* Form */}
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FieldGroup>
+        <FieldGroup className="gap-3">
           {/* Name */}
           <Controller
             name="name"
@@ -123,9 +118,7 @@ export default function SignupPage() {
                   className="h-11 rounded-lg px-3"
                   {...field}
                 />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}
           />
@@ -147,18 +140,14 @@ export default function SignupPage() {
                   />
                   <Mail className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}
           />
 
           {/* Profile Picture */}
           <Field>
-            <FieldLabel className="text-sm font-semibold">
-              Profile Picture (Optional)
-            </FieldLabel>
+            <FieldLabel className="text-sm font-semibold">Profile Picture (Optional)</FieldLabel>
             <div className="flex items-center gap-4">
               {/* Upload preview area */}
               <button
@@ -185,12 +174,8 @@ export default function SignupPage() {
                 ) : (
                   <>
                     <User className="size-8 text-muted-foreground/60" />
-                    <span className="text-xs text-muted-foreground">
-                      Click to upload
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/60">
-                      or drag and drop
-                    </span>
+                    <span className="text-xs text-muted-foreground">Click to upload</span>
+                    <span className="text-[10px] text-muted-foreground/60">or drag and drop</span>
                   </>
                 )}
               </button>
@@ -207,9 +192,7 @@ export default function SignupPage() {
                   <Upload className="size-3.5" />
                   Browse Files
                 </Button>
-                <span className="text-xs text-muted-foreground">
-                  or drag & drop
-                </span>
+                <span className="text-xs text-muted-foreground">or drag & drop</span>
                 <span className="text-[10px] text-muted-foreground/60">
                   Max 5MB (JPEG, PNG, WebP)
                 </span>
@@ -234,9 +217,7 @@ export default function SignupPage() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel className="text-sm font-semibold">
-                  Password
-                </FieldLabel>
+                <FieldLabel className="text-sm font-semibold">Password</FieldLabel>
                 <div className="relative">
                   <Input
                     aria-invalid={fieldState.invalid}
@@ -251,16 +232,10 @@ export default function SignupPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
                 </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}
           />
@@ -271,9 +246,7 @@ export default function SignupPage() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel className="text-sm font-semibold">
-                  Confirm Password
-                </FieldLabel>
+                <FieldLabel className="text-sm font-semibold">Confirm Password</FieldLabel>
                 <div className="relative">
                   <Input
                     aria-invalid={fieldState.invalid}
@@ -295,9 +268,7 @@ export default function SignupPage() {
                     )}
                   </button>
                 </div>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}
           />
@@ -308,11 +279,7 @@ export default function SignupPage() {
             disabled={isLoading}
             className="mt-2 h-11 w-full cursor-pointer rounded-lg bg-foreground text-background hover:bg-foreground/90"
           >
-            {isLoading ? (
-              <LoaderIcon className="size-4 animate-spin" />
-            ) : (
-              "Sign up"
-            )}
+            {isLoading ? <LoaderIcon className="size-4 animate-spin" /> : "Sign up"}
           </Button>
         </FieldGroup>
       </form>
@@ -320,17 +287,11 @@ export default function SignupPage() {
       {/* Terms Footer */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         By clicking continue, you agree to our{" "}
-        <Link
-          href="/terms"
-          className="underline underline-offset-4 hover:text-foreground"
-        >
+        <Link href="/terms" className="underline underline-offset-4 hover:text-foreground">
           Terms of Service
         </Link>{" "}
         and{" "}
-        <Link
-          href="/privacy"
-          className="underline underline-offset-4 hover:text-foreground"
-        >
+        <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">
           Privacy Policy
         </Link>
         .

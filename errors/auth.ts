@@ -1,8 +1,4 @@
-type AuthError = {
-  code?: string;
-  message?: string;
-  status?: number;
-};
+import type { AuthError } from "@/types";
 
 export function getSignUpErrorMessage(error: AuthError): string {
   switch (error.code) {
@@ -14,6 +10,37 @@ export function getSignUpErrorMessage(error: AuthError): string {
     case "INVALID_PASSWORD":
       return "Password is too weak. Please use a stronger password.";
     case "RATE_LIMIT_EXCEEDED":
+      return "Too many attempts. Please wait a moment and try again.";
+    default:
+      return error.message || "Something went wrong. Please try again.";
+  }
+}
+
+export function getForgotPasswordErrorMessage(error: AuthError): string {
+  switch (error.code) {
+    case "USER_NOT_FOUND":
+      return "No account found with this email address.";
+    case "INVALID_EMAIL":
+      return "Please enter a valid email address.";
+    case "RATE_LIMIT_EXCEEDED":
+    case "TOO_MANY_REQUESTS":
+      return "Too many requests. Please wait a moment and try again.";
+    default:
+      return error.message || "Something went wrong. Please try again.";
+  }
+}
+
+export function getResetPasswordErrorMessage(error: AuthError): string {
+  switch (error.code) {
+    case "INVALID_TOKEN":
+      return "This reset link is invalid or has expired. Please request a new one.";
+    case "TOKEN_EXPIRED":
+      return "This reset link has expired. Please request a new one.";
+    case "WEAK_PASSWORD":
+    case "INVALID_PASSWORD":
+      return "Password is too weak. Please use a stronger password.";
+    case "RATE_LIMIT_EXCEEDED":
+    case "TOO_MANY_REQUESTS":
       return "Too many attempts. Please wait a moment and try again.";
     default:
       return error.message || "Something went wrong. Please try again.";

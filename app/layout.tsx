@@ -37,9 +37,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="max-w-7xl mx-auto w-full md:px-6 lg:px-8">
-            {children}
-          </main>
+          <main className="flex-1 w-full flex flex-col">{children}</main>
           <Toaster richColors position="bottom-right" />
         </ThemeProvider>
       </body>

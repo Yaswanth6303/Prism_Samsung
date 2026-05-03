@@ -15,12 +15,9 @@ export const signupSchema = z
       .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
         message: "Image must be less than 5MB",
       })
-      .refine(
-        (file) =>
-          !file ||
-          ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-        { message: "Only JPEG, PNG, and WebP images are allowed" }
-      ),
+      .refine((file) => !file || ["image/jpeg", "image/png", "image/webp"].includes(file.type), {
+        message: "Only JPEG, PNG, and WebP images are allowed",
+      }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -31,3 +28,17 @@ export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });

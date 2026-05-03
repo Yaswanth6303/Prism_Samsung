@@ -1,30 +1,43 @@
-import { NextResponse, type NextRequest } from 'next/server'
-
-const publicRoutes = ['/login']
-const sessionCookieNames = ['authjs.session-token', '__Secure-authjs.session-token']
-
-function hasSessionCookie(request: NextRequest) {
-  return sessionCookieNames.some((name) => Boolean(request.cookies.get(name)?.value))
-}
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
-  const isSignedIn = hasSessionCookie(request)
+  // Better Auth stores the session token in a cookie.
+  // In development it's better-auth.session_token, in production it's __Secure-better-auth.session_token
+  const sessionCookie =
+    request.cookies.get("better-auth.session_token") ||
+    request.cookies.get("__Secure-better-auth.session_token");
 
-  if (!isSignedIn && !isPublicRoute) {
-    const loginUrl = new URL('/login', request.nextUrl)
-    loginUrl.searchParams.set('callbackUrl', `${request.nextUrl.pathname}${request.nextUrl.search}`)
-    return NextResponse.redirect(loginUrl)
+  const url = request.nextUrl.clone();
+
+  const authPaths = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+  ];
+  const isAuthPath = authPaths.includes(url.pathname);
+  const isLandingPage = url.pathname === "/";
+
+  // If the user is logged in and trying to access auth pages or landing page, redirect to dashboard
+  if (sessionCookie && (isAuthPath || isLandingPage)) {
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
   }
 
-  if (isSignedIn && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.nextUrl))
+  // If the user is NOT logged in and trying to access a protected page, redirect to login
+  if (!sessionCookie && !isAuthPath && !isLandingPage) {
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}
+  // Run proxy on all routes except API routes, static files, images, etc.
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+  ],
+};

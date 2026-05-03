@@ -74,24 +74,16 @@ export function StreakDisplay() {
           const isCompleted = completedDays[index] ?? false;
 
           return (
-            <div
-              key={index}
-              className="flex-1 flex flex-col items-center"
-            >
+            <div key={index} className="flex-1 flex flex-col items-center">
               <div
-                className={`w-full aspect-square rounded-lg flex items-center justify-center mb-1 transition-all ${isCompleted
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-100 text-gray-400'
-                  } ${isToday ? 'ring-2 ring-orange-400 ring-offset-2' : ''}`}
+                className={`w-full aspect-square rounded-lg flex items-center justify-center mb-1 transition-all ${
+                  isCompleted ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-400"
+                } ${isToday ? "ring-2 ring-orange-400 ring-offset-2" : ""}`}
               >
-                {isCompleted ? (
-                  <Flame className="w-4 h-4" />
-                ) : (
-                  <Calendar className="w-4 h-4" />
-                )}
+                {isCompleted ? <Flame className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
               </div>
               <span className="text-xs text-gray-500">
-                {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                {date.toLocaleDateString("en-US", { weekday: "short" })}
               </span>
             </div>
           );

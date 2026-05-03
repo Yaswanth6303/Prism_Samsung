@@ -205,7 +205,7 @@ export function AIStudy() {
 
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note);
-    setView('noteDetail');
+    setView("noteDetail");
   };
 
   const handleBack = () => {
@@ -218,8 +218,8 @@ export function AIStudy() {
     } else if (view === 'noteDetail') {
       setView('notes');
       setSelectedNote(null);
-    } else if (view === 'notes') {
-      setView('subjects');
+    } else if (view === "notes") {
+      setView("subjects");
       setSelectedSubject(null);
     }
   };

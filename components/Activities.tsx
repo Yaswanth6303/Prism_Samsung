@@ -174,7 +174,7 @@ export function Activities() {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           {showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          <span className="hidden sm:inline">{showAddForm ? 'Cancel' : 'Add Activity'}</span>
+          <span className="hidden sm:inline">{showAddForm ? "Cancel" : "Add Activity"}</span>
         </button>
       </div>
 
