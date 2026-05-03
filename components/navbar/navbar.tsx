@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import {Menu} from "lucide-react";
 import { ToggleColorTheme } from "./toggle-color-theme";
 import { ToggleTheme } from "./toggle-theme";
 import { authClient } from "@/lib/auth-client";
@@ -30,10 +31,10 @@ import {
   Settings,
   LoaderIcon,
   MessageSquare,
-  Menu,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export function NavBar() {
   const { data: session, isPending } = authClient.useSession();
@@ -58,6 +59,10 @@ export function NavBar() {
       setIsLoggingOut(false);
     }
   };
+
+  // NOTE: removed automatic background platform sync on every page load.
+  // Platform sync should only run when the user presses the Sync button in Activities
+  // or on the user's first visit (handled in the Activities component).
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U";

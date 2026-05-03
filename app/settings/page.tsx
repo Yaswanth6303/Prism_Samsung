@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
-  Check,
   Eye,
+  Check,
   EyeOff,
   KeyRound,
   LoaderIcon,
@@ -20,6 +21,10 @@ import {
   ShieldAlert,
   Sun,
   Trash2,
+   X, 
+   Pencil,
+   Save,
+   Settings
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -29,6 +34,14 @@ import type { SessionInfo } from "@/types";
 export default function SettingsPage() {
   const { data: session, isPending } = authClient.useSession();
   const { theme, setTheme } = useTheme();
+
+  //API
+  const [keys, setKeys] = useState({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '', leetcodePat: '' })
+  const [hasKeys, setHasKeys] = useState({ hasOpenAI: false, hasAnthropic: false, hasGemini: false, hasGithubPat: false, hasLeetKey: false })
+  const [keysSaving, setKeysSaving] = useState(false)
+  const [keysStatus, setKeysStatus] = useState('')
+  const [showGithubPat, setShowGithubPat] = useState(false)
+  const [showLeetPat, setShowLeetPat] = useState(false)
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -52,6 +65,55 @@ export default function SettingsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteSection, setShowDeleteSection] = useState(false);
+
+  const saveKeys = async () => {
+    setKeysSaving(true)
+    setKeysStatus('')
+    try {
+      const payload: any = {}
+      if (keys.openaiKey !== '') payload.openaiKey = keys.openaiKey
+      if (keys.anthropicKey !== '') payload.anthropicKey = keys.anthropicKey
+      if (keys.geminiKey !== '') payload.geminiKey = keys.geminiKey
+      if (keys.githubPat !== '') payload.githubPat = keys.githubPat
+      if (keys.leetcodePat !== '') payload.leetcodePat = keys.leetcodePat
+      
+      if (Object.keys(payload).length === 0) {
+        setKeysStatus('Enter a key to save')
+        setKeysSaving(false)
+        return
+      }
+
+      const response = await fetch('/api/profile/keys', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const json = await response.json()
+      if (!response.ok || !json?.ok) throw new Error(json?.error || 'Could not save keys')
+      
+      setHasKeys({ hasOpenAI: json.hasOpenAI, hasAnthropic: json.hasAnthropic, hasGemini: json.hasGemini, hasGithubPat: json.hasGithubPat, hasLeetKey: json.hasLeetKey })
+      setKeys({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '', leetcodePat: '' })
+      setKeysStatus('Keys saved successfully')
+    } catch (error) {
+      setKeysStatus(error instanceof Error ? error.message : 'Could not save keys')
+    } finally {
+      setKeysSaving(false)
+    }
+  }
+
+    const loadKeys = useCallback(async () => {
+      try {
+        const keysRes = await fetch('/api/profile/keys', { cache: 'no-store' })
+        if (keysRes.ok) {
+          const kjson = await keysRes.json()
+          if (kjson?.ok) {
+            setHasKeys({ hasOpenAI: kjson.hasOpenAI, hasAnthropic: kjson.hasAnthropic, hasGemini: kjson.hasGemini, hasGithubPat: kjson.hasGithubPat, hasLeetKey: kjson.hasLeetKey })
+          }
+        }
+      } catch {
+        // silently fail
+      }
+    }, [])
 
   const fetchSessions = useCallback(async () => {
     setIsLoadingSessions(true);
@@ -82,6 +144,7 @@ export default function SettingsPage() {
     if (session) {
       fetchSessions();
       checkHasPassword();
+      loadKeys();
     }
   }, [session, fetchSessions, checkHasPassword]);
 
@@ -287,10 +350,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center w-full px-4 md:px-6 lg:px-8">
       <NavBar />
 
-      <div className="py-8">
+      <div className="py-8 w-full max-w-2xl">
         {/* Page Header */}
         <div className="mb-8 max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
@@ -299,7 +362,108 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto space-y-6">
+
+        <div className="max-w-2xl space-y-6">
+          {/* API Keys & Integration Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="size-4" />
+                  API Keys & Integration
+                </CardTitle>
+                <CardDescription>Manage your API keys for AI providers and platform integrations.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* AI Provider Keys Section */}
+                <div>
+                  <h3 className="font-semibold text-sm mb-3">AI Provider Keys</h3>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">OpenAI Key {hasKeys.hasOpenAI && <span className="text-emerald-600 font-medium">(Saved)</span>}</Label>
+                      <Input
+                        type="password"
+                        value={keys.openaiKey}
+                        onChange={(e) => setKeys((prev) => ({ ...prev, openaiKey: e.target.value }))}
+                        placeholder={hasKeys.hasOpenAI ? "••••••••" : "sk-..."}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Anthropic Key {hasKeys.hasAnthropic && <span className="text-emerald-600 font-medium">(Saved)</span>}</Label>
+                      <Input
+                        type="password"
+                        value={keys.anthropicKey}
+                        onChange={(e) => setKeys((prev) => ({ ...prev, anthropicKey: e.target.value }))}
+                        placeholder={hasKeys.hasAnthropic ? "••••••••" : "sk-ant-..."}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Gemini Key {hasKeys.hasGemini && <span className="text-emerald-600 font-medium">(Saved)</span>}</Label>
+                      <Input
+                        type="password"
+                        value={keys.geminiKey}
+                        onChange={(e) => setKeys((prev) => ({ ...prev, geminiKey: e.target.value }))}
+                        placeholder={hasKeys.hasGemini ? "••••••••" : "AIza..."}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Platform Integration Keys Section */}
+                <div>
+                  <h3 className="font-semibold text-sm mb-3">Platform Integration</h3>
+                  <div className="space-y-4">
+                    {/* GitHub PAT */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">GitHub PAT {hasKeys.hasGithubPat && <span className="text-emerald-600 font-medium">(Saved)</span>}</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">Personal Access Token for full contribution history</p>
+                      <div className="relative">
+                        <Input
+                          type={showGithubPat ? "text" : "password"}
+                          value={keys.githubPat}
+                          onChange={(e) => setKeys((prev) => ({ ...prev, githubPat: e.target.value }))}
+                          placeholder={hasKeys.hasGithubPat ? "••••••••" : "ghp_..."}
+                          className="h-9 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowGithubPat(!showGithubPat)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          tabIndex={-1}
+                        >
+                          {showGithubPat ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {keysStatus && (
+                  <p className={`text-xs ${keysStatus.includes('successfully') ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                    {keysStatus}
+                  </p>
+                )}
+
+                <Button
+                  onClick={saveKeys}
+                  disabled={keysSaving}
+                  className="gap-1.5 cursor-pointer"
+                >
+                  {keysSaving ? <LoaderIcon className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  Save Keys
+                </Button>
+              </CardContent>
+            </Card>
+
           {/* Appearance */}
           <Card>
             <CardHeader>
