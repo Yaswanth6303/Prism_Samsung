@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
 import { User } from '@/lib/models/User'
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
   }
 
   // DB-backed leaderboard
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   await connectToDB()
   const users = await User.find().sort({ totalPoints: -1, createdAt: 1 }).limit(20).lean()
 

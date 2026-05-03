@@ -12,8 +12,8 @@ const globalForMongo = global as typeof globalThis & {
 let cached = globalForMongo._mongoClient
 
 export async function connectToDB() {
-  const MONGODB_URI = process.env.MONGODB_URI || ''
-  const MONGODB_DB = process.env.MONGODB_DB || 'prism_samsung'
+  const MONGODB_URI = process.env.MONGO_DB_URL || ''
+  const MONGODB_DB = process.env.MONGODB_DB || 'clawmind'
   if (!MONGODB_URI) {
     throw new Error('Please define the MONGODB_URI environment variable inside .env')
   }

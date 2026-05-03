@@ -24,6 +24,7 @@ export interface IUser extends Document {
   anthropicKey?: string;
   geminiKey?: string;
   githubPat?: string;
+  leetcodePat?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -51,8 +52,11 @@ const UserSchema = new Schema<IUser>(
     anthropicKey: { type: String },
     geminiKey: { type: String },
     githubPat: { type: String },
+    leetcodePat: { type: String },
+    emailVerified: { type: Boolean, default: false },
+    image: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true, collection: 'user' }
 );
 
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

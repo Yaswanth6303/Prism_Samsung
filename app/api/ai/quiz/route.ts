@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
 import { Subject } from '@/lib/models/Subject'
@@ -52,7 +53,7 @@ function makeQuiz(content: string, count = 8) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
   }

@@ -1,9 +1,9 @@
 const { MongoClient, ObjectId } = require('mongodb');
 const dotenv = require('dotenv');
-dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 async function run() {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGO_DB_URL;
   const dbName = process.env.MONGODB_DB || "prism_samsung";
   const client = new MongoClient(uri);
 
@@ -11,7 +11,7 @@ async function run() {
     await client.connect();
     const db = client.db(dbName);
     const subjects = await db.collection('subjects').find({ name: 'ClawMind' }).toArray();
-    
+
     console.log('Subjects with name ClawMind:', subjects.length);
     for (const s of subjects) {
       console.log(`ID: ${s._id}, UserID: ${s.userId}, Whiteboards Array Size: ${s.whiteboards ? s.whiteboards.length : 'missing'}`);

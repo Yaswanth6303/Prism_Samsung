@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Check, LoaderIcon, Mail, Shield, User, Calendar, X, Pencil } from "lucide-react";
+import { Camera, Check, LoaderIcon, Mail, Shield, User, Calendar, X, Pencil, Eye, EyeOff, Save, Settings } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -18,9 +18,12 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [name, setName] = useState("");
+  const [githubUsername, setGithubUsername] = useState("");
+  const [leetcodeUsername, setLeetcodeUsername] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<string[]>([]);
   const [isLinking, setIsLinking] = useState<string | null>(null);
+
 
   const fetchLinkedAccounts = useCallback(async () => {
     try {
@@ -33,11 +36,28 @@ export default function ProfilePage() {
     }
   }, []);
 
+  const loadProfileData = useCallback(async () => {
+    try {
+      const res = await fetch('/api/profile', { cache: 'no-store' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json?.ok && json.profile) {
+          setGithubUsername(json.profile.githubUsername || '')
+          setLeetcodeUsername(json.profile.leetcodeUsername || '')
+        }
+      }
+    } catch {
+      // silently fail
+    }
+  }, [])
+
+
   useEffect(() => {
     if (session) {
       fetchLinkedAccounts();
+      loadProfileData();
     }
-  }, [session, fetchLinkedAccounts]);
+  }, [session, fetchLinkedAccounts, loadProfileData]);
 
   const handleLinkAccount = async (provider: "google" | "github") => {
     setIsLinking(provider);
@@ -61,12 +81,16 @@ export default function ProfilePage() {
 
   const handleStartEditing = () => {
     setName(session?.user?.name || "");
+    setGithubUsername(githubUsername);
+    setLeetcodeUsername(leetcodeUsername);
     setIsEditing(true);
   };
 
   const handleCancelEditing = () => {
     setIsEditing(false);
     setName("");
+    setGithubUsername("");
+    setLeetcodeUsername("");
   };
 
   const handleSave = async () => {
@@ -76,13 +100,23 @@ export default function ProfilePage() {
     }
     setIsSaving(true);
     try {
-      await authClient.updateUser({
-        name: name.trim(),
-      });
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          githubUsername: githubUsername.trim(),
+          leetcodeUsername: leetcodeUsername.trim(),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json?.ok) throw new Error(json?.error || 'Failed to update profile')
+      
       toast.success("Profile updated successfully");
       setIsEditing(false);
-    } catch {
-      toast.error("Failed to update profile. Please try again.");
+      await loadProfileData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
@@ -128,6 +162,8 @@ export default function ProfilePage() {
       day: "numeric",
     });
   };
+
+  
 
   if (isPending) {
     return (
@@ -317,6 +353,36 @@ export default function ProfilePage() {
                       )}
                     </div>
                   </div>
+
+                  {/* GitHub Username */}
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">GitHub Username</Label>
+                    {isEditing ? (
+                      <Input
+                        value={githubUsername}
+                        onChange={(e) => setGithubUsername(e.target.value)}
+                        placeholder="your-github-username"
+                        className="h-10"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{githubUsername || "Not set"}</p>
+                    )}
+                  </div>
+
+                  {/* LeetCode Username */}
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">LeetCode Username</Label>
+                    {isEditing ? (
+                      <Input
+                        value={leetcodeUsername}
+                        onChange={(e) => setLeetcodeUsername(e.target.value)}
+                        placeholder="your-leetcode-username"
+                        className="h-10"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{leetcodeUsername || "Not set"}</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -360,6 +426,8 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+            
 
             {/* Connected Accounts Card */}
             <Card>
@@ -461,9 +529,12 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+   
           </div>
         </div>
       </div>
     </div>
   );
 }
+

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export function NavBar() {
   const { data: session, isPending } = authClient.useSession();
@@ -48,6 +49,42 @@ export function NavBar() {
       setIsLoggingOut(false);
     }
   };
+
+  // After sign-in, auto-sync platforms if GitHub is linked
+  useEffect(() => {
+    if (!session) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        // Check which accounts are linked
+        const accounts = await authClient.listAccounts();
+        const hasGithubLinked = accounts.data?.some((a) => a.providerId === 'github');
+
+        // If user has GitHub linked, request a sync (don't wait for manual username entry)
+        if (hasGithubLinked && !cancelled) {
+          toast('Syncing your GitHub contributions...', { duration: 3000 });
+          const sres = await fetch('/api/platform/sync', { method: 'POST' });
+          const sjson = await sres.json();
+          if (!sres.ok || !sjson?.ok) {
+            toast.error(sjson?.error || sjson?.errors?.join?.(', ') || 'Sync failed');
+          } else {
+            const details = Array.isArray(sjson.results) ? sjson.results.map((r: any) => r.message).join(' | ') : 'Synced';
+            toast.success(sjson.pointsAwarded > 0 ? `${details} — awarded ${sjson.pointsAwarded} points` : details);
+            // Notify activity lists to refresh
+            window.dispatchEvent(new Event('activity:logged'));
+          }
+        }
+      } catch (e) {
+        // ignore network errors here
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U";

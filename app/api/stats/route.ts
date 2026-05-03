@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
 import { User } from '@/lib/models/User'
 import { Activity } from '@/lib/models/Activity'
 import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.id) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }

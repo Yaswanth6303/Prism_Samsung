@@ -1,4 +1,4 @@
-import { encrypt, decrypt } from './lib/encryption.ts';
+import { encrypt, decrypt } from '@lib/encryption';
 try {
   const enc = encrypt('test-key');
   console.log('Encrypted:', enc);

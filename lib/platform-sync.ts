@@ -171,16 +171,21 @@ export async function fetchGitHubSnapshot(username: string, pat?: string) {
   }
 }
 
-export async function fetchLeetCodeSnapshot(username: string) {
+export async function fetchLeetCodeSnapshot(username: string, authToken?: string) {
   const cleanUsername = username.trim()
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+    'content-type': 'application/json',
+    referer: 'https://leetcode.com',
+    'user-agent': 'Mozilla/5.0 PrismSamsung/1.0',
+  }
+  if (authToken) {
+    headers.Cookie = `LEETCODE_SESSION=${authToken}`
+  }
+
   const response = await fetch('https://leetcode.com/graphql', {
     method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      referer: 'https://leetcode.com',
-      'user-agent': 'Mozilla/5.0 PrismSamsung/1.0',
-    },
+    headers,
     cache: 'no-store',
     body: JSON.stringify({
       query: `

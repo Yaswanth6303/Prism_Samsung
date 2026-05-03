@@ -58,8 +58,8 @@ export function Profile() {
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
-  const [keys, setKeys] = useState({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '' })
-  const [hasKeys, setHasKeys] = useState({ hasOpenAI: false, hasAnthropic: false, hasGemini: false, hasGithubPat: false })
+  const [keys, setKeys] = useState({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '', leetcodePat: '' })
+  const [hasKeys, setHasKeys] = useState({ hasOpenAI: false, hasAnthropic: false, hasGemini: false, hasGithubPat: false, hasLeetKey: false })
   const [keysSaving, setKeysSaving] = useState(false)
   const [keysStatus, setKeysStatus] = useState('')
 
@@ -79,7 +79,7 @@ export function Profile() {
     if (keysRes.ok) {
       const kjson = await keysRes.json()
       if (kjson?.ok) {
-        setHasKeys({ hasOpenAI: kjson.hasOpenAI, hasAnthropic: kjson.hasAnthropic, hasGemini: kjson.hasGemini, hasGithubPat: kjson.hasGithubPat })
+        setHasKeys({ hasOpenAI: kjson.hasOpenAI, hasAnthropic: kjson.hasAnthropic, hasGemini: kjson.hasGemini, hasGithubPat: kjson.hasGithubPat, hasLeetKey: kjson.hasLeetKey })
       }
     }
   }
@@ -143,6 +143,7 @@ export function Profile() {
       if (keys.anthropicKey !== '') payload.anthropicKey = keys.anthropicKey
       if (keys.geminiKey !== '') payload.geminiKey = keys.geminiKey
       if (keys.githubPat !== '') payload.githubPat = keys.githubPat
+      if (keys.leetcodePat !== '') payload.leetcodePat = keys.leetcodePat
       
       if (Object.keys(payload).length === 0) {
         setKeysStatus('Enter a key to save')
@@ -158,8 +159,8 @@ export function Profile() {
       const json = await response.json()
       if (!response.ok || !json?.ok) throw new Error(json?.error || 'Could not save keys')
       
-      setHasKeys({ hasOpenAI: json.hasOpenAI, hasAnthropic: json.hasAnthropic, hasGemini: json.hasGemini, hasGithubPat: json.hasGithubPat })
-      setKeys({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '' })
+      setHasKeys({ hasOpenAI: json.hasOpenAI, hasAnthropic: json.hasAnthropic, hasGemini: json.hasGemini, hasGithubPat: json.hasGithubPat, hasLeetKey: json.hasLeetKey })
+      setKeys({ openaiKey: '', anthropicKey: '', geminiKey: '', githubPat: '', leetcodePat: '' })
       setKeysStatus('Keys saved successfully')
     } catch (error) {
       setKeysStatus(error instanceof Error ? error.message : 'Could not save keys')
@@ -322,6 +323,17 @@ export function Profile() {
             onChange={(event) => setKeys((prev) => ({ ...prev, githubPat: event.target.value }))}
             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder={hasKeys.hasGithubPat ? "********" : "ghp_..."}
+          />
+        </label>
+
+        <label className="block max-w-md mt-4">
+          <span className="text-sm text-gray-600">LeetCode Session Token {hasKeys.hasLeetKey && <span className="text-green-500 font-medium">(Saved)</span>}</span>
+          <input
+            type="password"
+            value={keys.leetcodePat}
+            onChange={(event) => setKeys((prev) => ({ ...prev, leetcodePat: event.target.value }))}
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={hasKeys.hasLeetKey ? "********" : "session_..."}
           />
         </label>
 

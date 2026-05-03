@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
 import { Activity } from '@/lib/models/Activity'
@@ -8,9 +9,10 @@ import { fetchGitHubSnapshot, fetchLeetCodeSnapshot, type PlatformSnapshot } fro
 import { pointsFor } from '@/lib/points'
 import { recalculateAllStreaks } from '@/lib/streak'
 import { decrypt } from '@/lib/encryption'
+import { db } from '@/db'
 
-export async function POST() {
-  const session = await auth()
+export async function POST(request: Request) {
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
   }
@@ -25,10 +27,33 @@ export async function POST() {
   const errors: string[] = []
   const results: Array<{ provider: 'github' | 'leetcode'; ok: boolean; message: string }> = []
 
-  if (user.githubUsername) {
+  // If user doesn't have GitHub username saved but has GitHub linked, try to extract it from OAuth
+  let githubUsername = user.githubUsername
+  if (!githubUsername) {
+    try {
+      // Query better-auth's accounts collection for GitHub account
+      const accountsCollection = db.collection('account')
+      const githubAccount = await accountsCollection.findOne({ userId: user._id.toString(), provider: 'github' })
+      if (githubAccount?.accountId) {
+        // accountId for GitHub contains the username
+        githubUsername = githubAccount.accountId
+        // Save it to user for future syncs
+        user.githubUsername = githubUsername
+      }
+    } catch (e) {
+      // continue without GitHub username
+    }
+  }
+
+  if (githubUsername) {
     try {
       const pat = user.githubPat ? decrypt(user.githubPat) : undefined
-      snapshot.github = await fetchGitHubSnapshot(user.githubUsername, pat)
+      snapshot.github = await fetchGitHubSnapshot(githubUsername, pat)
+      console.log(`[Sync] GitHub: ${githubUsername}`, {
+        repos: snapshot.github.publicRepos,
+        followers: snapshot.github.followers,
+        historyDays: Object.keys(snapshot.github.history).length,
+      })
       results.push({
         provider: 'github',
         ok: true,
@@ -36,6 +61,7 @@ export async function POST() {
       })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'GitHub sync failed'
+      console.error(`[Sync] GitHub error:`, message)
       errors.push(message)
       results.push({ provider: 'github', ok: false, message })
     }
@@ -43,7 +69,12 @@ export async function POST() {
 
   if (user.leetcodeUsername) {
     try {
-      snapshot.leetcode = await fetchLeetCodeSnapshot(user.leetcodeUsername)
+      const leetToken = user.leetcodePat ? decrypt(user.leetcodePat) : undefined
+      snapshot.leetcode = await fetchLeetCodeSnapshot(user.leetcodeUsername, leetToken)
+      console.log(`[Sync] LeetCode: ${user.leetcodeUsername}`, {
+        totalSolved: snapshot.leetcode.totalSolved,
+        historyDays: Object.keys(snapshot.leetcode.history).length,
+      })
       results.push({
         provider: 'leetcode',
         ok: true,
@@ -51,12 +82,13 @@ export async function POST() {
       })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'LeetCode sync failed'
+      console.error(`[Sync] LeetCode error:`, message)
       errors.push(message)
       results.push({ provider: 'leetcode', ok: false, message })
     }
   }
 
-  if (!user.githubUsername && !user.leetcodeUsername) {
+  if (!githubUsername && !user.leetcodeUsername) {
     return NextResponse.json({
       ok: false,
       error: 'Add a GitHub or LeetCode username in Profile before syncing.',
@@ -79,6 +111,7 @@ export async function POST() {
     titleFn: (count: number) => string,
     details: string
   ) {
+    console.log(`[processHistory] Starting for ${type}, total days: ${Object.keys(history).length}`)
     for (const [dateStr, count] of Object.entries(history)) {
       if (count <= 0) continue
 
@@ -94,6 +127,7 @@ export async function POST() {
       const expectedPoints = pointsFor(pointType, count)
 
       if (!existing) {
+        console.log(`[processHistory] Creating activity for ${dateStr}: ${count} ${type}`)
         await Activity.create({
           userId: userId,
           type,

@@ -255,7 +255,7 @@ export function Activities() {
           <h2 className="text-lg font-semibold text-gray-900">Connected Platforms</h2>
           <button
             onClick={syncPlatforms}
-            disabled={syncing || (!githubConnected && !leetcodeConnected)}
+            disabled={syncing}
             className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             <RefreshCcw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />

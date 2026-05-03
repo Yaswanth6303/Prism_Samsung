@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import connectToDB from '@/lib/mongodb'
@@ -20,7 +21,7 @@ type ActivityEvent = {
 
 export async function GET(request: Request) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.id) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -58,12 +59,12 @@ const ActivitySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.id) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
     const userId = session.user.id
-
+    console.log("Activities POST by user:", userId)
     const body = await request.json()
     const parsed = ActivitySchema.safeParse(body)
     if (!parsed.success) {
@@ -73,9 +74,10 @@ export async function POST(request: Request) {
     const { type, title, value, details } = parsed.data
     const todayStr = new Date().toISOString().slice(0, 10)
     const dateStr = parsed.data.date || todayStr
+    console.log("Parsed activity data:", { type, title, value, details, dateStr })
 
     await connectToDB()
-
+  
     let pts = 0;
     if (type === 'gym') pts = pointsFor('gym_session', value)
     else if (type === 'jogging') pts = pointsFor('jog_per_km', value)
@@ -94,9 +96,23 @@ export async function POST(request: Request) {
     await activityEvent.save()
 
     const user = await User.findById(userId)
+      .select('totalPoints currentStreak longestStreak gymSessions joggingDistance leetcodeSolved githubContributions')
+      .lean<{
+        totalPoints?: number
+        currentStreak?: number
+        longestStreak?: number
+        gymSessions?: number
+        joggingDistance?: number
+        leetcodeSolved?: number
+        githubContributions?: number
+      } | null>()
+
     if (!user) {
       return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 })
     }
+    console.log("User before update:", {
+      totalPoints: user.totalPoints,
+      currentStreak: user.currentStreak,});
 
     await DailyActivityLog.findOneAndUpdate(
       { userId, date: dateStr },
@@ -113,25 +129,38 @@ export async function POST(request: Request) {
         hasActivity: log.hasActivity,
         totalCount: log.totalCount,
       })),
-      currentStreak: user.currentStreak,
-      bestStreak: user.longestStreak,
+      currentStreak: user.currentStreak ?? 0,
+      bestStreak: user.longestStreak ?? 0,
       today: new Date(`${dateStr}T00:00:00.000Z`),
     })
+    console.log("Daily logs:", dailyLogs)
+    console.log("Updated user streaks:", { currentStreak, bestStreak })
 
-    user.totalPoints += pts
-    user.currentStreak = currentStreak
-    user.longestStreak = bestStreak
-    
-    if (type === 'gym') user.gymSessions += 1
-    if (type === 'jogging') user.joggingDistance += value
-    if (type === 'leetcode') user.leetcodeSolved += value
-    if (type === 'github') user.githubContributions += value
+    const $inc: Record<string, number> = {
+      totalPoints: pts,
+    }
+    if (type === 'gym') $inc.gymSessions = 1
+    if (type === 'jogging') $inc.joggingDistance = value
+    if (type === 'leetcode') $inc.leetcodeSolved = value
+    if (type === 'github') $inc.githubContributions = value
 
-    await user.save()
+    await User.updateOne(
+      { _id: userId },
+      {
+        $inc,
+        $set: {
+          currentStreak,
+          longestStreak: bestStreak,
+        },
+      }
+    )
 
     return NextResponse.json({ ok: true, activity: activityEvent, pointsAwarded: pts })
   } catch (error) {
     console.error('Activities POST Error:', error)
+    if (error instanceof Error) {
+      console.error('Activities POST Error Stack:', error.stack)
+    }
     return NextResponse.json({ ok: false, error: 'Internal Server Error' }, { status: 500 })
   }
 }
