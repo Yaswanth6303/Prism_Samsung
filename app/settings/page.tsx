@@ -314,41 +314,41 @@ export default function SettingsPage() {
                 <Label className="text-muted-foreground">Theme Mode</Label>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {themeOptions.map((option) => {
-                  const Icon = option.icon;
-                  const isActive = theme === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => setTheme(option.value)}
-                      className={`relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all cursor-pointer hover:bg-muted/50 ${
-                        isActive
-                          ? "border-foreground bg-muted/50"
-                          : "border-transparent bg-muted/20"
-                      }`}
-                    >
-                      {isActive && (
-                        <div className="absolute top-2 right-2">
-                          <Check className="size-3.5 text-foreground" />
-                        </div>
-                      )}
-                      <div
-                        className={`rounded-full p-2.5 ${
-                          isActive ? "bg-foreground/10" : "bg-muted"
+                    const Icon = option.icon;
+                    const isActive = theme === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => setTheme(option.value)}
+                        className={`relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all cursor-pointer hover:bg-muted/50 ${
+                          isActive
+                            ? "border-foreground bg-muted/50"
+                            : "border-transparent bg-muted/20"
                         }`}
                       >
-                        <Icon
-                          className={`size-5 ${
-                            isActive ? "text-foreground" : "text-muted-foreground"
+                        {isActive && (
+                          <div className="absolute top-2 right-2">
+                            <Check className="size-3.5 text-foreground" />
+                          </div>
+                        )}
+                        <div
+                          className={`rounded-full p-2.5 ${
+                            isActive ? "bg-foreground/10" : "bg-muted"
                           }`}
-                        />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium">{option.label}</p>
-                        <p className="text-xs text-muted-foreground">{option.description}</p>
-                      </div>
-                    </button>
-                  );
-                })}
+                        >
+                          <Icon
+                            className={`size-5 ${
+                              isActive ? "text-foreground" : "text-muted-foreground"
+                            }`}
+                          />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-medium">{option.label}</p>
+                          <p className="text-xs text-muted-foreground">{option.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
