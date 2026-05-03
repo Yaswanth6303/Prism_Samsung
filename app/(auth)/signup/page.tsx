@@ -69,8 +69,8 @@ export default function SignupPage() {
         },
         {
           onSuccess: () => {
-            toast.success("Account created successfully!");
-            router.push("/");
+            toast.success("Account created! Please verify your email.");
+            router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
           },
           onError: (ctx) => {
             const message = getSignUpErrorMessage(ctx.error);
