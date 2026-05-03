@@ -1,6 +1,7 @@
 "use client";
 
 import { NavBar } from "@/components/navbar/navbar";
+import { ToggleColorTheme } from "@/components/navbar/toggle-color-theme";
 import { authClient } from "@/lib/auth-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Check,
-  Eye,
   EyeOff,
   KeyRound,
   LoaderIcon,
@@ -320,7 +319,7 @@ export default function SettingsPage() {
 
   if (isPending) {
     return (
-      <div className="max-w-7xl mx-auto w-full md:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
         <NavBar />
         <div className="flex items-center justify-center py-32">
           <div className="flex flex-col items-center gap-3">
@@ -334,7 +333,7 @@ export default function SettingsPage() {
 
   if (!session) {
     return (
-      <div className="max-w-7xl mx-auto w-full md:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
         <NavBar />
         <div className="flex items-center justify-center py-32">
           <Card className="w-full max-w-md">
@@ -349,12 +348,12 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto w-full md:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-8">
       <NavBar />
 
       <div className="py-8">
         {/* Page Header */}
-        <div className="mb-8">
+        <div className="mb-8 max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="mt-1 text-muted-foreground">
             Manage your account preferences and security.
@@ -462,6 +461,7 @@ export default function SettingsPage() {
                 </Button>
               </CardContent>
             </Card>
+
           {/* Appearance */}
           <Card>
             <CardHeader>
@@ -471,9 +471,11 @@ export default function SettingsPage() {
               </CardTitle>
               <CardDescription>Customize how ProductivityHub looks on your device.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {themeOptions.map((option) => {
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label className="text-muted-foreground">Theme Mode</Label>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {themeOptions.map((option) => {
                   const Icon = option.icon;
                   const isActive = theme === option.value;
                   return (
@@ -509,6 +511,20 @@ export default function SettingsPage() {
                     </button>
                   );
                 })}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-muted-foreground">Accent Color</Label>
+                <div className="flex items-center justify-between gap-4 border rounded-lg p-4 bg-muted/20">
+                  <div>
+                    <p className="text-sm font-medium">Primary Theme Color</p>
+                    <p className="text-xs text-muted-foreground">
+                      Choose the main color for buttons, links, and active states.
+                    </p>
+                  </div>
+                  <ToggleColorTheme />
+                </div>
               </div>
             </CardContent>
           </Card>

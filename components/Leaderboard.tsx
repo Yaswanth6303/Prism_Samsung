@@ -108,7 +108,7 @@ export function Leaderboard() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card text-card-foreground rounded-xl shadow-sm border border-border overflow-hidden">
         {/* Header */}
         <div className="bg-linear-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center gap-3 mb-2">

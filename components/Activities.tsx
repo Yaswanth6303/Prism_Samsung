@@ -263,9 +263,9 @@ export function Activities() {
           </button>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
-              <GithubIcon className="w-6 h-6 text-gray-700" />
+              <GithubIcon className="w-6 h-6 text-muted-foreground" />
               <div>
                 <p className="font-medium text-gray-900">GitHub</p>
                 <p className="text-sm text-gray-500">{githubConnected ? `${profile.githubUsername} - ${profile.githubPublicRepos} repos, ${profile.githubFollowers} followers, ${profile.githubContributions} recent public contributions` : 'Add username in Profile'}</p>
@@ -276,9 +276,9 @@ export function Activities() {
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
-              <Code2 className="w-6 h-6 text-gray-700" />
+              <Code2 className="w-6 h-6 text-muted-foreground" />
               <div>
                 <p className="font-medium text-gray-900">LeetCode</p>
                 <p className="text-sm text-gray-500">{leetcodeConnected ? `${profile.leetcodeUsername} - ${profile.leetcodeSolved} solved` : 'Add username in Profile'}</p>

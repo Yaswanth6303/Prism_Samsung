@@ -600,8 +600,8 @@ export function AIStudy() {
             </button>
             <button onClick={() => setView('whiteboard')} className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 transition-colors text-left">
               <Pencil className="w-6 h-6 text-blue-600 mb-2" />
-              <p className="font-medium text-gray-900">Whiteboard</p>
-              <p className="text-sm text-gray-500">Draw diagrams</p>
+              <p className="font-medium text-foreground">Whiteboard</p>
+              <p className="text-sm text-muted-foreground">Draw diagrams</p>
             </button>
           </div>
 

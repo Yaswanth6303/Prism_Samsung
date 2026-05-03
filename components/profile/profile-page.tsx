@@ -24,7 +24,6 @@ export default function ProfilePage() {
   const [linkedAccounts, setLinkedAccounts] = useState<string[]>([]);
   const [isLinking, setIsLinking] = useState<string | null>(null);
 
-
   const fetchLinkedAccounts = useCallback(async () => {
     try {
       const res = await authClient.listAccounts();
@@ -427,8 +426,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            
-
             {/* Connected Accounts Card */}
             <Card>
               <CardHeader>
@@ -537,4 +534,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

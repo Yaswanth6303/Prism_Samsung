@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Inter,
+  Quicksand,
+  Space_Grotesk,
+  Lora,
+  Playfair_Display,
+} from "next/font/google";
 import "./globals.css";
+import { COLOR_THEME_STORAGE_KEY } from "@/lib/color-theme";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "sonner";
 
@@ -11,6 +20,31 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
+  subsets: ["latin"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
 });
 
@@ -28,9 +62,17 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${quicksand.variable} ${spaceGrotesk.variable} ${lora.variable} ${playfairDisplay.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Inline boot avoids next/script + React 19 “script never executes on client” warnings in dev */}
+        <script
+          id="color-theme-boot"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k=${JSON.stringify(COLOR_THEME_STORAGE_KEY)};var v=localStorage.getItem(k);if(v&&v!=="default")document.documentElement.setAttribute("data-color-theme",v)}catch(e){}})()`,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
