@@ -74,6 +74,11 @@ export default function LoginPage() {
             router.push("/dashboard");
           },
           onError: (ctx) => {
+            if (ctx.error.code === "EMAIL_NOT_VERIFIED") {
+              toast.error("Please verify your email before logging in.");
+              router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+              return;
+            }
             const message = getSignInErrorMessage(ctx.error);
             toast.error(message);
           },

@@ -10,15 +10,25 @@ export function proxy(request: NextRequest) {
 
   const url = request.nextUrl.clone();
 
-  // If the user is logged in and trying to access the landing page, redirect to dashboard
-  if (sessionCookie && url.pathname === "/") {
+  const authPaths = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+  ];
+  const isAuthPath = authPaths.includes(url.pathname);
+  const isLandingPage = url.pathname === "/";
+
+  // If the user is logged in and trying to access auth pages or landing page, redirect to dashboard
+  if (sessionCookie && (isAuthPath || isLandingPage)) {
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
-  // Also protect the login and signup pages from being accessed by already logged-in users
-  if (sessionCookie && (url.pathname === "/login" || url.pathname === "/signup")) {
-    url.pathname = "/dashboard";
+  // If the user is NOT logged in and trying to access a protected page, redirect to login
+  if (!sessionCookie && !isAuthPath && !isLandingPage) {
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
@@ -26,6 +36,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Only run middleware on specific routes to maximize performance
-  matcher: ["/", "/login", "/signup"],
+  // Run proxy on all routes except API routes, static files, images, etc.
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+  ],
 };
