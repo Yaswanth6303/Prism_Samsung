@@ -61,79 +61,79 @@ export function Dashboard() {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20 md:pb-6">
       {/* ClawMind Feature Card */}
-      <Link href="/study" className="block mb-6">
-        <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <BrainCircuit className="w-8 h-8" />
+      <Link href="/study" className="block mb-4 sm:mb-6">
+        <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-4 sm:p-6 text-white hover:shadow-lg transition-shadow">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-white/20 rounded-xl flex-shrink-0">
+                <BrainCircuit className="w-6 sm:w-8 h-6 sm:h-8" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-1">ClawMind</h2>
-                <p className="text-indigo-100 text-sm">
+                <h2 className="text-lg sm:text-xl font-semibold mb-1">ClawMind</h2>
+                <p className="text-indigo-100 text-xs sm:text-sm">
                   AI-powered study assistant with Notes, Quizzes and Whiteboard
                 </p>
               </div>
             </div>
-            <ArrowRight className="w-6 h-6" />
+            <ArrowRight className="w-5 sm:w-6 h-5 sm:h-6 flex-shrink-0" />
           </div>
         </div>
       </Link>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className={statSurface}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400">
-              <TrendingUp className="w-5 h-5" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400 flex-shrink-0">
+              <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Points</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalPoints}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-sm text-gray-500">Total Points</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">{stats.totalPoints}</p>
             </div>
           </div>
         </div>
 
         <div className={statSurface}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-orange-500/15 text-orange-600 dark:bg-orange-500/25 dark:text-orange-400">
-              <Flame className="w-5 h-5" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/15 text-orange-600 dark:bg-orange-500/25 dark:text-orange-400 flex-shrink-0">
+              <Flame className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Current Streak</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.currentStreak}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={statSurface}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400">
-              <Trophy className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">College Rank</p>
-              <p className="text-2xl font-semibold text-gray-900">#{stats.rank}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-sm text-gray-500">Current Streak</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">{stats.currentStreak}</p>
             </div>
           </div>
         </div>
 
         <div className={statSurface}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400">
-              <Flame className="w-5 h-5" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400 flex-shrink-0">
+              <Trophy className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Best Streak</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.longestStreak}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-sm text-gray-500">College Rank</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">#{stats.rank}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={statSurface}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400 flex-shrink-0">
+              <Flame className="w-4 sm:w-5 h-4 sm:h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-sm text-gray-500">Best Streak</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">{stats.longestStreak}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Platform Stats */}
+      {/* Platform Stats
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className={statSurface}>
           <div className="flex items-center gap-2 mb-1">
@@ -170,7 +170,7 @@ export function Dashboard() {
           <p className="text-xl font-semibold text-gray-900">{stats.joggingDistance}km</p>
           <p className="text-xs text-gray-500">distance</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Streak Display */}
       {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6"> */}
@@ -185,21 +185,23 @@ export function Dashboard() {
       {/* </div> */}
 
       {/* Recent Activities */}
-      <div className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm ring-1 ring-foreground/10">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Recent Activities</h2>
-        <div className="space-y-3">
-          {activities.slice(0, 5).map((activity) => (
-            <ActivityCard key={activity.id ?? activity._id} activity={{
-              id: activity.id ?? activity._id,
-              type: activity.type,
-              title: activity.title,
-              date: activity.date || activity.createdAt || activity.dateString,
-              points: activity.points ?? activity.value ?? 0,
-              details: activity.details,
-            }} />
-          ))}
+      {activities.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-6 text-card-foreground shadow-sm ring-1 ring-foreground/10 mt-4 sm:mt-6">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">Recent Activities</h2>
+          <div className="space-y-3">
+            {activities.slice(0, 5).map((activity) => (
+              <ActivityCard key={activity.id ?? activity._id} activity={{
+                id: activity.id ?? activity._id,
+                type: activity.type,
+                title: activity.title,
+                date: activity.date || activity.createdAt || activity.dateString,
+                points: activity.points ?? activity.value ?? 0,
+                details: activity.details,
+              }} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

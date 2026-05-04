@@ -4,6 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { Plus, BookOpen, BrainCircuit, Pencil, ChevronRight, ArrowLeft, FileText, Trash2, Eraser } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Tldraw } from 'tldraw';
+import 'tldraw/tldraw.css';
+import { NavBar } from "./navbar/navbar";
 
 type QuizQuestion = {
   question: string
@@ -445,32 +448,51 @@ export function AIStudy() {
   }, [view, selectedSubject?.id]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 md:pb-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          {view !== 'subjects' && (
-            <button
-              onClick={handleBack}
-              disabled={view === 'quiz' && quizLoading}
-              className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-700" />
-            </button>
-          )}
-          <h1 className="text-2xl font-semibold text-gray-900">ClawMind</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm text-gray-500 hidden sm:inline">AI Model:</span>
-            <select 
-              value={provider} 
-              onChange={e => setProvider(e.target.value as any)}
-              className="text-sm border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="openai">OpenAI</option>
-              <option value="claude">Claude</option>
-              <option value="gemini">Gemini</option>
-            </select>
+    <div className={view === 'whiteboard' ? 'w-full h-screen flex flex-col p-2 sm:p-4' : 'max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 md:pb-6'}>
+      {view === 'whiteboard' && (
+        <>
+          <button
+            onClick={handleBack}
+            disabled={view === 'quiz' && quizLoading}
+            className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed w-fit"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <div className="flex-1 flex items-start justify-center pt-4">
+            <div className="w-full max-w-2xl sm:max-w-4xl lg:max-w-6xl h-5/6 rounded-lg border border-gray-200 overflow-hidden shadow-lg">
+              <Tldraw />
+            </div>
           </div>
-        </div>
+        </>
+      )}
+      
+      {view !== 'whiteboard' && (
+        <div>
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              {view !== 'subjects' && (
+                <button
+                  onClick={handleBack}
+                  disabled={view === 'quiz' && quizLoading}
+                  className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-700" />
+                </button>
+              )}
+              <h1 className="text-2xl font-semibold text-gray-900">ClawMind</h1>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-sm text-gray-500 hidden sm:inline">AI Model:</span>
+                <select 
+                  value={provider} 
+                  onChange={e => setProvider(e.target.value as any)}
+                  className="text-sm border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="openai">OpenAI</option>
+                  <option value="claude">Claude</option>
+                  <option value="gemini">Gemini</option>
+                </select>
+              </div>
+            </div>
         <p className="text-sm text-gray-500">
           {view === 'subjects' && 'Organize your study materials by subject'}
           {view === 'notes' && selectedSubject && `${selectedSubject.name} - ${selectedSubject.notesCount} notes`}
@@ -604,51 +626,6 @@ export function AIStudy() {
               <p className="text-sm text-muted-foreground">Draw diagrams</p>
             </button>
           </div>
-
-          <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Saved Whiteboards</h3>
-            {whiteboards.length === 0 ? (
-              <p className="text-sm text-gray-500">No saved whiteboards yet.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {whiteboards.map((board, index) => (
-                  <div key={board._id || index} className="group relative">
-                    <button
-                      onClick={() => openWhiteboard(board)}
-                      className="w-full text-left bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-blue-500 transition-all"
-                    >
-                      <div className="aspect-video bg-white relative h-24 sm:h-32">
-                        <img src={board.image} alt={board.title || 'Whiteboard'} className="w-full h-full object-contain bg-gray-50" />
-                      </div>
-                      <div className="p-2 sm:p-3">
-                        <p className="text-xs font-medium text-gray-900 truncate">{board.title || 'Whiteboard'}</p>
-                        <p className="text-[10px] text-gray-500">
-                          {board.createdDate ? new Date(board.createdDate).toLocaleDateString() : 'Just now'}
-                        </p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Delete button clicked for board:', { ...board, image: board.image?.substring(0, 30) + '...' });
-                        const id = board._id || (board as any).id || (board as any)._id;
-                        if (!id) {
-                            alert('Cannot delete: Whiteboard ID is missing');
-                            return;
-                        }
-                        if (confirm(`Delete whiteboard "${board.title || 'Untitled'}"?`)) {
-                          deleteWhiteboard(id, board.createdDate);
-                        }
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-red-50 text-red-600 rounded-lg sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 z-10"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
 
@@ -713,66 +690,6 @@ export function AIStudy() {
           </div>
         </div>
       )}
-
-      {view === 'whiteboard' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-            <div className="p-3 sm:p-4 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-50 gap-4">
-              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                <button onClick={handleBack} className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-gray-200 transition-all shadow-sm bg-white shrink-0">
-                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
-                </button>
-                <div className="flex items-center gap-2">
-                  <Pencil className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <span className="font-bold text-gray-900 text-sm sm:text-base">Whiteboard</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto sm:overflow-visible pb-1 sm:pb-0">
-                <div className="flex items-center gap-1.5 p-1.5 bg-white border border-gray-200 rounded-xl">
-                  {['#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B'].map((color) => (
-                    <button 
-                      key={color} 
-                      onClick={() => setBrushColor(color)}
-                      className={`w-7 h-7 rounded-lg transition-transform hover:scale-110 ${brushColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`} 
-                      style={{ backgroundColor: color }} 
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={saveWhiteboard}
-                    disabled={loading}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-60 text-xs sm:text-sm font-semibold whitespace-nowrap"
-                  >
-                    Save
-                  </button>
-                  <button 
-                    onClick={clearCanvas}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all text-xs sm:text-sm font-semibold shadow-sm whitespace-nowrap"
-                  >
-                    <Eraser className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    Clear
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white relative" style={{ height: '500px' }}>
-              <canvas 
-                ref={canvasRef}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-                className="w-full h-full cursor-crosshair touch-none"
-              />
-            </div>
-          </div>
-          <p className="text-center text-sm text-gray-400">Use the whiteboard to sketch out ideas or diagrams related to your notes.</p>
         </div>
       )}
     </div>

@@ -31,6 +31,7 @@ import {
   Settings,
   LoaderIcon,
   MessageSquare,
+  Book
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -77,7 +78,7 @@ export function NavBar() {
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-    { href: "/discussion", label: "Discussion", icon: MessageSquare },
+    { href: "/study", label: "Study", icon: Book },
     { href: "/activities", label: "Activities", icon: Activity },
   ];
 

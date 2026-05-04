@@ -117,26 +117,35 @@ export async function POST(request: Request) {
 
       const startOfDay = new Date(`${dateStr}T00:00:00.000Z`)
       const endOfDay = new Date(`${dateStr}T23:59:59.999Z`)
-      
-      const existing = await Activity.findOne({
+      const expectedPoints = pointsFor(pointType, count)
+
+      // Try atomic upsert: create the activity if missing. updateOne with upsert
+      const filter = {
         userId: userId,
         type,
         date: { $gte: startOfDay, $lte: endOfDay }
-      })
+      }
 
-      const expectedPoints = pointsFor(pointType, count)
+      const upsertResult = await Activity.updateOne(
+        filter,
+        {
+          $setOnInsert: {
+            userId: userId,
+            type,
+            title: titleFn(count),
+            details,
+            date: startOfDay,
+            points: expectedPoints,
+          },
+        },
+        { upsert: true }
+      )
 
-      if (!existing) {
-        console.log(`[processHistory] Creating activity for ${dateStr}: ${count} ${type}`)
-        await Activity.create({
-          userId: userId,
-          type,
-          title: titleFn(count),
-          details,
-          date: startOfDay,
-          points: expectedPoints,
-        })
-        
+      // If we inserted a new activity, upsertResult.upsertedCount will be > 0
+      // (Mongoose returns a WriteResult-like object)
+      // Award points and mark daily log atomically.
+      // @ts-ignore - depending on driver, upsertedCount may be available
+      if (upsertResult && (upsertResult as any).upsertedCount > 0) {
         await DailyActivityLog.findOneAndUpdate(
           { userId: userId.toString(), date: dateStr },
           { $set: { hasActivity: true }, $inc: { totalCount: count } },
@@ -145,22 +154,23 @@ export async function POST(request: Request) {
         pointsDelta += expectedPoints
         historyUpdated = true
       } else {
-        // If they did MORE than we previously logged
-        const previousPoints = existing.points
-        if (expectedPoints > previousPoints) {
-          const addedPoints = expectedPoints - previousPoints
-          const addedCount = count - Math.floor(previousPoints / pointsFor(pointType, 1))
-          
-          existing.points = expectedPoints
-          existing.title = titleFn(count)
-          await existing.save()
+        // Existing activity: load and update if they did more than before
+        const existing = await Activity.findOne(filter)
+        if (existing) {
+          const previousPoints = existing.points
+          if (expectedPoints > previousPoints) {
+            const addedPoints = expectedPoints - previousPoints
+            const addedCount = count - Math.floor(previousPoints / pointsFor(pointType, 1))
 
-          await DailyActivityLog.findOneAndUpdate(
-            { userId: userId.toString(), date: dateStr },
-            { $inc: { totalCount: addedCount } }
-          )
-          pointsDelta += addedPoints
-          historyUpdated = true
+            await Activity.updateOne({ _id: existing._id }, { $set: { points: expectedPoints, title: titleFn(count) } })
+
+            await DailyActivityLog.updateOne(
+              { userId: userId.toString(), date: dateStr },
+              { $inc: { totalCount: addedCount } }
+            )
+            pointsDelta += addedPoints
+            historyUpdated = true
+          }
         }
       }
     }

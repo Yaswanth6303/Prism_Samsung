@@ -151,7 +151,7 @@ export function Leaderboard() {
           <div className="flex items-center gap-3 mb-2 justify-between">
             <div className="flex items-center gap-3">
               <Trophy className="w-8 h-8" />
-              <h1 className="text-2xl font-semibold">College Leaderboard</h1>
+              <h1 className="text-2xl font-semibold">Global Leaderboard</h1>
             </div>
             <button
               onClick={load}

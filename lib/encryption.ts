@@ -3,8 +3,9 @@ import crypto from 'crypto'
 const ALGORITHM = 'aes-256-cbc'
 
 function getKey() {
-  const secret = process.env.ENCRYPTION_SECRET || 'fallback_dev_secret_change_in_prod'
-  // Always derive a proper 32-byte key via SHA-256, regardless of input format
+  const secret = process.env.ENCRYPTION_SECRET
+  if (!secret) throw new Error('ENCRYPTION_SECRET must be set')
+  // Always derive a proper 32-byte key via SHA-256
   return crypto.createHash('sha256').update(secret).digest()
 }
 
@@ -21,21 +22,12 @@ export function decrypt(payload: string | null | undefined): string {
   // Defensive: ensure payload is a string before attempting to split.
   // Add lightweight diagnostics to catch unexpected types in production.
   if (!payload || typeof payload !== 'string') {
-    console.warn('decrypt called with non-string payload', {
-      type: payload === null ? 'null' : typeof payload,
-      constructorName: payload && (payload as any).constructor ? (payload as any).constructor.name : undefined,
-    })
     return ''
   }
 
   try {
-    // Log the first few characters to help diagnose malformed values (avoid full secret leak)
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug('decrypt payload preview:', payload.slice(0, 48))
-    }
-
     const [ivHex, encryptedHex] = payload.split(':')
-    if (!ivHex || !encryptedHex) return payload
+    if (!ivHex || !encryptedHex) return ''
     const key = getKey()
     const iv = Buffer.from(ivHex, 'hex')
     const encrypted = Buffer.from(encryptedHex, 'hex')
@@ -43,7 +35,7 @@ export function decrypt(payload: string | null | undefined): string {
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])
     return decrypted.toString('utf8')
   } catch (error) {
-    console.error('Decryption failed:', error)
+    console.error('Decryption failed')
     return ''
   }
 }

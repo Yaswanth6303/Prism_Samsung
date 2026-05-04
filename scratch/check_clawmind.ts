@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Subject } from './lib/models/Subject';
+import { Subject } from '../lib/models/Subject';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 

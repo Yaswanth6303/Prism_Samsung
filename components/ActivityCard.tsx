@@ -64,15 +64,15 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <div className={`p-2 rounded-lg ${getColor()}`}>{getIcon()}</div>
+    <div className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${getColor()}`}>{getIcon()}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 truncate">{activity.title}</p>
-        {activity.details && <p className="text-sm text-gray-500 truncate">{activity.details}</p>}
+        <p className="font-medium text-xs sm:text-sm text-gray-900 truncate">{activity.title}</p>
+        {activity.details && <p className="text-xs text-gray-500 truncate">{activity.details}</p>}
       </div>
       <div className="text-right shrink-0">
-        <p className="font-semibold text-blue-600">+{activity.points}</p>
-        <p className="text-xs text-gray-500">{formatDate(activity.date)}</p>
+        <p className="text-sm sm:text-base font-semibold text-blue-600">+{activity.points}</p>
+        <p className="text-[10px] sm:text-xs text-gray-500">{formatDate(activity.date)}</p>
       </div>
     </div>
   );

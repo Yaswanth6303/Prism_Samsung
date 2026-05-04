@@ -6,11 +6,17 @@ async function run() {
   if (!MONGODB_URI) throw new Error('No URI');
   await mongoose.connect(MONGODB_URI);
   const user = await User.findOne();
-  console.log('User keys:', {
-    openaiKey: user.openaiKey,
-    anthropicKey: user.anthropicKey,
-    geminiKey: user.geminiKey,
-    githubPat: user.githubPat
+  if (!user) {
+    console.log('No user found')
+    await mongoose.disconnect();
+    return
+  }
+
+  console.log('User keys (redacted):', {
+    hasOpenaiKey: Boolean(user.openaiKey),
+    hasAnthropicKey: Boolean(user.anthropicKey),
+    hasGeminiKey: Boolean(user.geminiKey),
+    hasGithubPat: Boolean(user.githubPat),
   });
   await mongoose.disconnect();
 }
