@@ -1,4 +1,4 @@
-# ClawMind
+# ClawMind  - [clawmind.online](https://clawmind.online)
 
 ClawMind is a Next.js productivity and placement-prep app built around
 accountability, progress tracking, and AI-assisted study tools. It combines a
