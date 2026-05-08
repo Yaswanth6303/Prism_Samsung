@@ -26,9 +26,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If the user is NOT logged in and trying to access a protected page, redirect to login
+  // If the user is NOT logged in and trying to access a protected page, redirect to landing page
   if (!sessionCookie && !isAuthPath && !isLandingPage) {
-    url.pathname = "/login";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
