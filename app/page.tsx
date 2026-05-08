@@ -184,12 +184,10 @@ function FeatureCard({
 const MARQUEE_ITEMS = [
   "🏆 Placement Tracker",
   "⚡ DSA Challenges",
-  "👥 Study Rooms",
   "📊 Analytics Dashboard",
   "🎯 Goal Setting",
-  "🔔 Smart Reminders",
-  "🤝 Peer Reviews",
-  "🚀 Mock Interviews",
+  "👥 Streak",
+  "⬜️ Whiteboard",
 ];
 
 function Marquee() {
@@ -284,14 +282,14 @@ export default function LandingPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400" />
             </span>
             <span className="text-blue-400 text-xs font-semibold tracking-widest uppercase">
-              Now live for MCA 2025 batch
+              Now live for students
             </span>
           </div>
 
           {/* The headline names the product first so the rest of the page has a clear anchor. */}
           <h1 className="anim-0 text-6xl md:text-8xl font-black tracking-tight leading-[0.95] mb-6">
             <span className="bg-linear-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent">
-              ProductivityHub
+              ClawMind
             </span>
           </h1>
 
@@ -305,8 +303,8 @@ export default function LandingPage() {
           </p>
 
           <p className="anim-2 mt-2 max-w-[580px] mx-auto text-zinc-500 text-base md:text-lg leading-relaxed">
-            The elite workspace for MCA students — track placement prep, dominate the leaderboard,
-            and solve challenges together.
+            The elite workspace for students — track placement prep, dominate the leaderboard, and
+            solve challenges together.
           </p>
 
           {/* Two CTAs cover both user states: new signup and returning login. */}
@@ -347,7 +345,7 @@ export default function LandingPage() {
 
           {/* A small proof line helps the hero feel concrete instead of purely promotional. */}
           <p className="mt-5 text-zinc-600 text-xs tracking-wide">
-            Free to join · No credit card required · 2,400+ students enrolled
+            Free to join · No credit card required
           </p>
         </div>
       </section>
@@ -485,7 +483,7 @@ export default function LandingPage() {
             <span className="text-blue-400">starts today.</span>
           </h2>
           <p className="relative text-zinc-500 mb-8 max-w-sm mx-auto">
-            Join 2,400+ MCA students already on their way to top-tier careers.
+            Join other students already on their way to top-tier careers.
           </p>
           <Link href="/signup">
             <Button

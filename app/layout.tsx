@@ -13,6 +13,7 @@ import { COLOR_THEME_STORAGE_KEY } from "@/lib/color-theme";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 // Root layout sets the shared fonts, providers, and toaster used by every page.
 const geistSans = Geist({
@@ -87,6 +88,7 @@ export default function RootLayout({
             <Toaster richColors position="bottom-right" />
           </ThemeProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   );
