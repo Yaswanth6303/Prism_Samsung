@@ -62,10 +62,39 @@ export default function ProfilePage() {
     }
   }, [session, fetchLinkedAccounts, loadProfileData]);
 
+  // Surface link errors and successes after the OAuth round-trip, then strip the query params
+  // so a refresh doesn't re-trigger the toast.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    const linked = params.get("linked");
+    if (!error && !linked) return;
+
+    if (error) {
+      const message =
+        error === "account_already_linked_to_different_user"
+          ? "That account is already linked to another user. Sign in with it directly, or remove the duplicate user first."
+          : `Failed to link account: ${error.replace(/_/g, " ")}`;
+      toast.error(message);
+    } else if (linked) {
+      toast.success(`${linked.charAt(0).toUpperCase() + linked.slice(1)} connected.`);
+    }
+
+    params.delete("error");
+    params.delete("linked");
+    const next = params.toString();
+    window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+  }, []);
+
   const handleLinkAccount = async (provider: "google" | "github") => {
     setIsLinking(provider);
     try {
-      await authClient.linkSocial({ provider, callbackURL: "/profile" });
+      await authClient.linkSocial({
+        provider,
+        callbackURL: `/profile?linked=${provider}`,
+        errorCallbackURL: "/profile",
+      });
     } catch {
       toast.error(`Failed to link ${provider}. Please try again.`);
       setIsLinking(null);

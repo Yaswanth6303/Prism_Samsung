@@ -375,7 +375,7 @@ export default function LandingPage() {
                 alt="ProductivityHub Dashboard Preview"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.01]"
-                priority
+                preload
               />
               {/* glass overlay shimmer on hover */}
               <div className="absolute inset-0 bg-linear-to-tr from-blue-900/0 via-white/0 to-violet-900/0 group-hover:from-blue-900/5 group-hover:to-violet-900/5 transition-all duration-700" />

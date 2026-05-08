@@ -43,10 +43,12 @@ export const auth = betterAuth({
       }
     },
   },
-  accountLinking: {
-    // Google and GitHub are trusted because the app uses them for profile sync.
-    enabled: true,
-    trustedProviders: ["google", "github"],
+  account: {
+    accountLinking: {
+      // Google and GitHub are trusted because the app uses them for profile sync.
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
   },
   socialProviders: {
     google: {
