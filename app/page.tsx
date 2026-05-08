@@ -375,7 +375,7 @@ export default function LandingPage() {
                 alt="ProductivityHub Dashboard Preview"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.01]"
-                priority
+                preload
               />
               {/* glass overlay shimmer on hover */}
               <div className="absolute inset-0 bg-linear-to-tr from-blue-900/0 via-white/0 to-violet-900/0 group-hover:from-blue-900/5 group-hover:to-violet-900/5 transition-all duration-700" />
@@ -408,7 +408,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats build social proof with simple numbers that are easy to scan quickly. */}
+      {/* Stats build social proof with simple numbers that are easy to scan quickly.
       <section ref={statsRef} className="relative z-10 w-full max-w-4xl px-4 py-12">
         <div
           className="grid grid-cols-2 md:grid-cols-4 gap-8 rounded-2xl border border-zinc-800/60 
@@ -419,7 +419,7 @@ export default function LandingPage() {
           <StatItem target={94} suffix="%" label="Placement Rate" started={statsStarted} />
           <StatItem target={320} suffix="+" label="Companies" started={statsStarted} />
         </div>
-      </section>
+      </section> */}
 
       {/* The features block translates the product into specific use cases. */}
       <section className="relative z-10 w-full max-w-6xl px-4 py-16">

@@ -29,10 +29,13 @@ export async function POST() {
   const userObjectId = new ObjectId(userId);
 
   try {
-    // Auth-side collections store userId as the string form of the ObjectId.
+    // better-auth's MongoDB adapter stores userId as ObjectId in account/session
+    // collections, but session.user.id arrives as a hex string. Match on both forms
+    // so neither legacy string-form rows nor current ObjectId-form rows survive.
+    const userIdMatch = { $in: [userObjectId, userId] };
     await Promise.all([
-      db.collection("session").deleteMany({ userId }),
-      db.collection("account").deleteMany({ userId }),
+      db.collection("session").deleteMany({ userId: userIdMatch }),
+      db.collection("account").deleteMany({ userId: userIdMatch }),
       email
         ? db.collection("verification").deleteMany({ identifier: email })
         : Promise.resolve(),

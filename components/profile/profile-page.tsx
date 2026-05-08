@@ -8,6 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Camera, Check, LoaderIcon, Mail, Shield, User, Calendar, X, Pencil, Eye, EyeOff, Save, Settings } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -22,8 +33,12 @@ export default function ProfilePage() {
   const [githubUsername, setGithubUsername] = useState("");
   const [leetcodeUsername, setLeetcodeUsername] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const githubInputRef = useRef<HTMLInputElement>(null);
+  const leetcodeInputRef = useRef<HTMLInputElement>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<string[]>([]);
   const [isLinking, setIsLinking] = useState<string | null>(null);
+  const [isUnlinking, setIsUnlinking] = useState<string | null>(null);
+  const [focusField, setFocusField] = useState<"github" | "leetcode" | null>(null);
 
   // We read linked providers once so the UI can show which accounts are already connected.
   const fetchLinkedAccounts = useCallback(async () => {
@@ -62,13 +77,60 @@ export default function ProfilePage() {
     }
   }, [session, fetchLinkedAccounts, loadProfileData]);
 
+  // Surface link errors and successes after the OAuth round-trip, then strip the query params
+  // so a refresh doesn't re-trigger the toast.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    const linked = params.get("linked");
+    if (!error && !linked) return;
+
+    if (error) {
+      const message =
+        error === "account_already_linked_to_different_user"
+          ? "That account is already linked to another user. Sign in with it directly, or remove the duplicate user first."
+          : `Failed to link account: ${error.replace(/_/g, " ")}`;
+      toast.error(message);
+    } else if (linked) {
+      toast.success(`${linked.charAt(0).toUpperCase() + linked.slice(1)} connected.`);
+    }
+
+    params.delete("error");
+    params.delete("linked");
+    const next = params.toString();
+    window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+  }, []);
+
   const handleLinkAccount = async (provider: "google" | "github") => {
     setIsLinking(provider);
     try {
-      await authClient.linkSocial({ provider, callbackURL: "/profile" });
+      await authClient.linkSocial({
+        provider,
+        callbackURL: `/profile?linked=${provider}`,
+        errorCallbackURL: "/profile",
+      });
     } catch {
       toast.error(`Failed to link ${provider}. Please try again.`);
       setIsLinking(null);
+    }
+  };
+
+  const handleUnlinkAccount = async (provider: "google" | "github") => {
+    setIsUnlinking(provider);
+    try {
+      const res = await authClient.unlinkAccount({ providerId: provider });
+      if (res.error) {
+        // Better Auth refuses to remove the last sign-in method, so surface that clearly.
+        toast.error(res.error.message ?? `Failed to disconnect ${provider}.`);
+        return;
+      }
+      toast.success(`${provider.charAt(0).toUpperCase() + provider.slice(1)} disconnected.`);
+      await fetchLinkedAccounts();
+    } catch {
+      toast.error(`Failed to disconnect ${provider}. Please try again.`);
+    } finally {
+      setIsUnlinking(null);
     }
   };
 
@@ -90,6 +152,19 @@ export default function ProfilePage() {
     setLeetcodeUsername(leetcodeUsername);
     setIsEditing(true);
   };
+
+  // Inline "Set username" buttons jump straight into edit mode with the chosen field focused.
+  const handleStartEditingField = (field: "github" | "leetcode") => {
+    handleStartEditing();
+    setFocusField(field);
+  };
+
+  useEffect(() => {
+    if (!isEditing || !focusField) return;
+    const ref = focusField === "github" ? githubInputRef : leetcodeInputRef;
+    ref.current?.focus();
+    setFocusField(null);
+  }, [isEditing, focusField]);
 
   const handleCancelEditing = () => {
     // Clearing local state keeps the next edit session fresh.
@@ -368,13 +443,24 @@ export default function ProfilePage() {
                     <Label className="text-muted-foreground">GitHub Username</Label>
                     {isEditing ? (
                       <Input
+                        ref={githubInputRef}
                         value={githubUsername}
                         onChange={(e) => setGithubUsername(e.target.value)}
                         placeholder="your-github-username"
                         className="h-10"
                       />
+                    ) : githubUsername ? (
+                      <p className="text-sm font-medium">{githubUsername}</p>
                     ) : (
-                      <p className="text-sm font-medium">{githubUsername || "Not set"}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartEditingField("github")}
+                        className="h-8 gap-1.5 cursor-pointer text-xs"
+                      >
+                        <Pencil className="size-3" />
+                        Set GitHub username
+                      </Button>
                     )}
                   </div>
 
@@ -382,13 +468,24 @@ export default function ProfilePage() {
                     <Label className="text-muted-foreground">LeetCode Username</Label>
                     {isEditing ? (
                       <Input
+                        ref={leetcodeInputRef}
                         value={leetcodeUsername}
                         onChange={(e) => setLeetcodeUsername(e.target.value)}
                         placeholder="your-leetcode-username"
                         className="h-10"
                       />
+                    ) : leetcodeUsername ? (
+                      <p className="text-sm font-medium">{leetcodeUsername}</p>
                     ) : (
-                      <p className="text-sm font-medium">{leetcodeUsername || "Not set"}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartEditingField("leetcode")}
+                        className="h-8 gap-1.5 cursor-pointer text-xs"
+                      >
+                        <Pencil className="size-3" />
+                        Set LeetCode username
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -477,10 +574,41 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     {linkedAccounts.includes("google") ? (
-                      <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
-                        <Check className="size-3" />
-                        Connected
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
+                          <Check className="size-3" />
+                          Connected
+                        </Badge>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isUnlinking !== null}
+                              className="cursor-pointer text-xs"
+                            >
+                              {isUnlinking === "google" ? (
+                                <LoaderIcon className="size-3 animate-spin mr-1" />
+                              ) : null}
+                              Disconnect
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Disconnect Google?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                You won&apos;t be able to sign in with Google after this. You can reconnect any time.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleUnlinkAccount("google")}>
+                                Disconnect
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     ) : (
                       <Button
                         variant="outline"
@@ -513,10 +641,41 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     {linkedAccounts.includes("github") ? (
-                      <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
-                        <Check className="size-3" />
-                        Connected
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="gap-1 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
+                          <Check className="size-3" />
+                          Connected
+                        </Badge>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isUnlinking !== null}
+                              className="cursor-pointer text-xs"
+                            >
+                              {isUnlinking === "github" ? (
+                                <LoaderIcon className="size-3 animate-spin mr-1" />
+                              ) : null}
+                              Disconnect
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Disconnect GitHub?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                You won&apos;t be able to sign in with GitHub after this. You can reconnect any time.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleUnlinkAccount("github")}>
+                                Disconnect
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     ) : (
                       <Button
                         variant="outline"

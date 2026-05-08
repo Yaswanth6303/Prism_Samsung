@@ -38,6 +38,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Run proxy on all routes except API routes, static files, images, etc.
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\..*).*)",
   ],
 };
