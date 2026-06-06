@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "@/app/schemas/auth";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import { getSignUpErrorMessage } from "@/errors/auth";
 import { Eye, EyeOff, LoaderIcon, Mail, Upload, User } from "lucide-react";
 import { useState, useRef, useCallback } from "react";

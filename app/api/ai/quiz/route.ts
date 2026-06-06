@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import connectToDB from "@/lib/mongodb";
-import { Subject } from "@/lib/models/Subject";
-import { User } from "@/lib/models/User";
-import { callAI } from "@/lib/aiClient";
-import { decrypt } from "@/lib/encryption";
+import { auth } from "@/lib/auth/server";
+import connectToDB from "@/lib/db/mongoose";
+import { Subject } from "@/lib/db/models/Subject";
+import { User } from "@/lib/db/models/User";
+import { callAI } from "@/lib/integrations/ai-client";
+import { decrypt } from "@/lib/services/encryption";
 
 function makeQuiz(content: string, count = 8) {
   const clean = content

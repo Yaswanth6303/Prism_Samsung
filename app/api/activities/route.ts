@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { z } from 'zod'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { User } from '@/lib/models/User'
-import { Activity } from '@/lib/models/Activity'
-import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
-import { pointsFor } from '@/lib/points'
-import { updateStreakFromLogs } from '@/lib/streak'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { User } from '@/lib/db/models/User'
+import { Activity } from '@/lib/db/models/Activity'
+import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
+import { pointsFor } from '@/lib/services/points'
+import { updateStreakFromLogs } from '@/lib/services/streak'
 
 // Normalized activity shape returned to the UI so cards and feeds can render one list consistently.
 type ActivityEvent = {

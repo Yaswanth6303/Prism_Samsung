@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import { callAI } from '@/lib/aiClient'
+import { auth } from '@/lib/auth/server'
+import { callAI } from '@/lib/integrations/ai-client'
 
 // ClawMind is a thin prompt wrapper so the client can ask for a focused study response.
 export async function POST(request: Request) {

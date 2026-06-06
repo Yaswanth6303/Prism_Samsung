@@ -9,7 +9,7 @@ import {
   Playfair_Display,
 } from "next/font/google";
 import "./globals.css";
-import { COLOR_THEME_STORAGE_KEY } from "@/lib/color-theme";
+import { COLOR_THEME_STORAGE_KEY } from "@/lib/theme/color-theme";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "sonner";

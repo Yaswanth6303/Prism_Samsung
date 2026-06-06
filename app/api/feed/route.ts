@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getFeed } from '@/lib/feature-store'
+import { getFeed } from '@/lib/services/feature-store'
 
 // This feed endpoint is intentionally lightweight because it just proxies the feature-store data.
 export async function GET(request: Request) {

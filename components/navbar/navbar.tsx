@@ -30,7 +30,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ToggleColorTheme } from "./toggle-color-theme";
 import { ToggleTheme } from "./toggle-theme";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 
 // The navbar is the main shell for navigation, auth state, and quick account actions.
 export function NavBar() {

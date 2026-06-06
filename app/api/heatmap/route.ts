@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { Activity } from '@/lib/models/Activity'
-import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { Activity } from '@/lib/db/models/Activity'
+import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
 
 // This endpoint packages yearly activity into a heatmap-friendly structure for the calendar view.
 export async function GET(request: Request) {

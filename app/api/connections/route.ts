@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import Connection from '@/lib/models/Connection'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import Connection from '@/lib/db/models/Connection'
 
 // GET returns the user's saved connections so the UI can list linked accounts in one place.
 export async function GET(req: Request) {

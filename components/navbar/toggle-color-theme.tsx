@@ -15,7 +15,7 @@ import {
   COLOR_THEME_OPTIONS,
   type ColorThemeId,
   readStoredColorTheme,
-} from "@/lib/color-theme";
+} from "@/lib/theme/color-theme";
 
 // This control lets the user swap the app's accent palette without changing the light/dark mode.
 export function ToggleColorTheme() {

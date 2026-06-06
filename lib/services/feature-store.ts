@@ -1,10 +1,14 @@
-import { pointsFor } from '@/lib/points'
+// Legacy in-memory store kept alive only for `getFeed` and `getLeaderboard` routes.
+// Canonical persistent types live in `@/types` and Mongoose models in `@/lib/db/models/*`.
+// The types below are internal to this file — do not export.
+import { pointsFor } from '@/lib/services/points'
 
 export type Metric = 'points' | 'github' | 'leetcode' | 'streak'
 export type Period = 'alltime' | 'weekly' | 'monthly'
-export type ActivityType = 'gym' | 'jog' | 'custom'
 
-export type UserProfile = {
+type ActivityType = 'gym' | 'jog' | 'custom'
+
+type UserProfile = {
   userId: string
   name: string
   collegeId: string
@@ -15,7 +19,7 @@ export type UserProfile = {
   bestStreak: number
 }
 
-export type ManualActivity = {
+type ManualActivity = {
   id: string
   userId: string
   type: ActivityType
@@ -27,7 +31,7 @@ export type ManualActivity = {
   createdAt: string
 }
 
-export type ActivityEvent = {
+type ActivityEvent = {
   id: string
   userId: string
   platform: 'manual' | 'github' | 'leetcode' | 'ai'
@@ -39,14 +43,14 @@ export type ActivityEvent = {
   createdAt: string
 }
 
-export type DailyActivityLog = {
+type DailyActivityLog = {
   userId: string
   date: string
   hasActivity: boolean
   totalCount: number
 }
 
-export type Directory = {
+type Directory = {
   id: string
   userId: string
   name: string
@@ -54,7 +58,7 @@ export type Directory = {
   createdAt: string
 }
 
-export type Note = {
+type Note = {
   id: string
   userId: string
   directoryId?: string
@@ -64,14 +68,14 @@ export type Note = {
   createdAt: string
 }
 
-export type QuizQuestion = {
+type QuizQuestion = {
   question: string
   options: string[]
   correctAnswer: string
   explanation: string
 }
 
-export type Quiz = {
+type Quiz = {
   id: string
   noteId: string
   userId: string

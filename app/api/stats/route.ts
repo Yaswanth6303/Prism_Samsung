@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { User } from '@/lib/models/User'
-import { Activity } from '@/lib/models/Activity'
-import { DailyActivityLog } from '@/lib/models/DailyActivityLog'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { User } from '@/lib/db/models/User'
+import { Activity } from '@/lib/db/models/Activity'
+import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
 
 // This endpoint aggregates the numbers the dashboard needs without making the client query multiple collections.
 export async function GET(request: Request) {

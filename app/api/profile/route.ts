@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { z } from 'zod'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { User } from '@/lib/models/User'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { User } from '@/lib/db/models/User'
 
 export const dynamic = 'force-dynamic'
 

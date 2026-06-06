@@ -2,7 +2,7 @@
 
 import { NavBar } from "@/components/navbar/navbar";
 import { ToggleColorTheme } from "@/components/navbar/toggle-color-theme";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

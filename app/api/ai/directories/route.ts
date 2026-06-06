@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { Subject } from '@/lib/models/Subject'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { Subject } from '@/lib/db/models/Subject'
 
 const COLORS = ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500']
 

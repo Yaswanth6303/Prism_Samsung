@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/app/schemas/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import { getSignInErrorMessage } from "@/errors/auth";
 
 import { Eye, EyeOff, LoaderIcon, Mail } from "lucide-react";

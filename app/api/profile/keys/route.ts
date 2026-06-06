@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
-import connectToDB from '@/lib/mongodb'
-import { User } from '@/lib/models/User'
-import { encrypt } from '@/lib/encryption'
+import { auth } from '@/lib/auth/server'
+import connectToDB from '@/lib/db/mongoose'
+import { User } from '@/lib/db/models/User'
+import { encrypt } from '@/lib/services/encryption'
 
 export const dynamic = 'force-dynamic'
 

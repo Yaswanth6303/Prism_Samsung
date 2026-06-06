@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { resetPasswordSchema } from "@/app/schemas/auth";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/client";
 import { getResetPasswordErrorMessage } from "@/errors/auth";
 import { CheckCircle, Eye, EyeOff, LoaderIcon } from "lucide-react";
 import { Suspense, useState } from "react";
