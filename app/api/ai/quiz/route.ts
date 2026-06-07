@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth/server";
-import connectToDB from "@/lib/db/mongoose";
 import { Subject } from "@/lib/db/models/Subject";
 import { User } from "@/lib/db/models/User";
+import connectToDB from "@/lib/db/mongoose";
 import { callAI } from "@/lib/integrations/ai-client";
 import { decrypt } from "@/lib/services/encryption";
+import { type QuizQuestion, QuizGenerateBodySchema, QuizQuestionSchema } from "@/types/api";
+import { z } from "zod";
 
-function makeQuiz(content: string, count = 8) {
+const QuizArraySchema = z.array(QuizQuestionSchema);
+
+function makeQuiz(content: string, count = 8): QuizQuestion[] {
   const clean = content
     .replace(/[#*_`>-]/g, " ")
     .replace(/\s+/g, " ")
@@ -16,7 +21,7 @@ function makeQuiz(content: string, count = 8) {
   const topic = words[0] || "this topic";
   const focus = words[1] || "concept";
 
-  const templates = [
+  const templates: Array<() => QuizQuestion> = [
     () => ({
       question: `What is the main focus of these notes about ${topic}?`,
       options: [
@@ -58,12 +63,7 @@ function makeQuiz(content: string, count = 8) {
     }),
   ];
 
-  const result = [] as Array<{
-    question: string;
-    options: string[];
-    correctAnswer: string;
-    explanation: string;
-  }>;
+  const result: QuizQuestion[] = [];
   for (let i = 0; i < count; i += 1) {
     result.push(templates[i % templates.length]());
   }
@@ -77,18 +77,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const noteId = body.noteId;
-    const subjectId = body.subjectId || body.directoryId;
-    const count = typeof body.count === "number" ? Math.max(3, Math.min(20, body.count)) : 8;
-    if (!noteId && !subjectId) {
-      return NextResponse.json(
-        { ok: false, error: "noteId or subjectId is required" },
-        { status: 400 },
-      );
+    const rawBody: unknown = await request.json();
+    const parsed = QuizGenerateBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: parsed.error.message }, { status: 400 });
     }
 
-    const provider = (body.provider || "openai") as "claude" | "openai" | "gemini";
+    const { noteId, subjectId, provider = "openai", count: requestedCount } = parsed.data;
+    const count =
+      typeof requestedCount === "number" ? Math.max(3, Math.min(20, requestedCount)) : 8;
 
     await connectToDB();
     const user = await User.findById(session.user.id);
@@ -97,9 +94,9 @@ export async function POST(request: Request) {
     }
 
     let apiKey = "";
-    if (provider === "openai" && user.openaiKey) apiKey = decrypt(user.openaiKey);
-    if (provider === "claude" && user.anthropicKey) apiKey = decrypt(user.anthropicKey);
-    if (provider === "gemini" && user.geminiKey) apiKey = decrypt(user.geminiKey);
+    if (provider === "openai" && user.openaiKey) {apiKey = decrypt(user.openaiKey);}
+    if (provider === "claude" && user.anthropicKey) {apiKey = decrypt(user.anthropicKey);}
+    if (provider === "gemini" && user.geminiKey) {apiKey = decrypt(user.geminiKey);}
 
     let subject = null;
     let quizSource = "";
@@ -130,7 +127,7 @@ export async function POST(request: Request) {
       quizSource = notes.map((note) => note.content || note.title).join("\n\n");
     }
 
-    let generatedQuiz = null;
+    let generatedQuiz: QuizQuestion[] | null = null;
     if (apiKey) {
       const prompt = `Generate a ${count}-question multiple choice quiz based on these notes:\n${quizSource}\nReturn ONLY a JSON array of objects with keys: question, options (array of 4 strings), correctAnswer (string), explanation (string).`;
       const responseText = await callAI(
@@ -144,13 +141,19 @@ export async function POST(request: Request) {
           .replace(/```json/g, "")
           .replace(/```/g, "")
           .trim();
-        generatedQuiz = JSON.parse(cleaned);
+        const parsedResponse: unknown = JSON.parse(cleaned);
+        const validated = QuizArraySchema.safeParse(parsedResponse);
+        if (validated.success) {
+          generatedQuiz = validated.data;
+        } else {
+          console.error("AI quiz response failed validation:", validated.error.message);
+        }
       } catch (e) {
         console.error("Failed to parse AI quiz JSON:", e);
       }
     }
 
-    if (!generatedQuiz || !Array.isArray(generatedQuiz)) {
+    if (!generatedQuiz) {
       generatedQuiz = makeQuiz(quizSource, count);
     }
 

@@ -1,13 +1,18 @@
 "use client";
 
+import { Suspense, useState, useRef, useEffect } from "react";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { CheckCircle, LoaderIcon, Mail, KeyRound, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/client";
-import { CheckCircle, LoaderIcon, Mail, KeyRound, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
+
+
 
 type VerifyMethod = "magic-link" | "otp";
 
@@ -86,7 +91,7 @@ function VerifyEmailContent() {
   };
 
   const handleOTPChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*$/.test(value)) {return;}
 
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
@@ -112,7 +117,7 @@ function VerifyEmailContent() {
   const handleOTPPaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length === 0) return;
+    if (pasted.length === 0) {return;}
 
     const newOtp = [...otp];
     for (let i = 0; i < pasted.length; i++) {
@@ -211,7 +216,7 @@ function VerifyEmailContent() {
           type="button"
           onClick={() => {
             setMethod("otp");
-            if (!otpSent) handleSendOTP();
+            if (!otpSent) {handleSendOTP();}
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
             method === "otp"

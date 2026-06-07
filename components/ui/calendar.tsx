@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 import {
   DayPicker,
   getDefaultClassNames,
@@ -8,9 +10,8 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 function Calendar({
   className,
@@ -191,7 +192,7 @@ function CalendarDayButton({
 
   const ref = React.useRef<HTMLButtonElement>(null)
   React.useEffect(() => {
-    if (modifiers.focused) ref.current?.focus()
+    if (modifiers.focused) {ref.current?.focus()}
   }, [modifiers.focused])
 
   return (

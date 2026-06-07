@@ -1,10 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Zap, Users, Code2, BookOpen, BarChart3 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+
+import { ArrowRight, Trophy, Zap, Users, Code2, BookOpen, BarChart3 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
 
 /* ─── Typewriter hook ─────────────────────────────── */
 // The typewriter effect gives the hero copy a little motion without needing a full animation library.
@@ -43,14 +47,14 @@ function useTypewriter(words: string[], speed: number = 80, pause: number = 2000
 function useCounter(target: number, duration: number = 1800, start: boolean = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    if (!start) return;
+    if (!start) {return;}
     let startTime: number | null = null;
     const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
+      if (!startTime) {startTime = timestamp;}
       const progress = Math.min((timestamp - startTime) / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 3);
       setCount(Math.floor(ease * target));
-      if (progress < 1) requestAnimationFrame(step);
+      if (progress < 1) {requestAnimationFrame(step);}
     };
     requestAnimationFrame(step);
   }, [target, duration, start]);
@@ -64,9 +68,9 @@ function StarField() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {return;}
     let animId: number;
 
     const resize = () => {
@@ -163,7 +167,7 @@ function FeatureCard({
     >
       {/* hover glow */}
       <div
-        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl`}
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl blur-xl"
         style={{ background: accent, zIndex: 0 }}
       />
       <div className="relative z-10">
@@ -246,10 +250,10 @@ export default function LandingPage() {
   const [statsStarted, setStatsStarted] = useState(false);
   useEffect(() => {
     const el = statsRef.current;
-    if (!el) return;
+    if (!el) {return;}
     const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) setStatsStarted(true);
+        if (entry.isIntersecting) {setStatsStarted(true);}
       },
       { threshold: 0.3 },
     );

@@ -1,8 +1,11 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {HeatmapPoint, ActivityCacheEntry} from "@/types"
+import { apiFetch } from '@/lib/api/fetch'
+import {type HeatmapPoint, type ActivityCacheEntry} from "@/types"
+import { ActivitiesResponseSchema, HeatmapResponseSchema } from "@/types/api"
 
 
 // type HeatmapPoint = { date: string; count: number; activities?: string[] }
@@ -16,24 +19,18 @@ export function ActivityHeatmap() {
     async function load() {
       try {
         const year = new Date().getFullYear()
-        const res = await fetch(`/api/heatmap?year=${year}`)
-        if (res.ok) {
-          const json = await res.json()
-          const data = json?.heatmap ?? json?.data
-          if (json?.ok && Array.isArray(data)) {
-            setHeatmapData(data)
-            return
-          }
-        }
-      } catch { }
-      // fallback empty
-      setHeatmapData([])
+        const data = await apiFetch(`/api/heatmap?year=${year}`, HeatmapResponseSchema)
+        setHeatmapData(data.data)
+      } catch {
+        // fallback empty on any error
+        setHeatmapData([])
+      }
     }
-    load()
+    void load()
   }, [])
 
   async function loadActivitiesForDate(date: string) {
-    if (activityCache[date]?.status === 'loading' || activityCache[date]?.status === 'loaded') return
+    if (activityCache[date]?.status === 'loading' || activityCache[date]?.status === 'loaded') {return}
 
     setActivityCache((current) => ({
       ...current,
@@ -41,13 +38,13 @@ export function ActivityHeatmap() {
     }))
 
     try {
-      const response = await fetch(`/api/activities?date=${date}&limit=100`)
-      const json = await response.json()
-      const activities = Array.isArray(json?.activities)
-        ? json.activities
-            .map((activity: { title?: string }) => activity.title)
-            .filter((title: unknown): title is string => typeof title === 'string' && title.trim().length > 0)
-        : []
+      const data = await apiFetch(
+        `/api/activities?date=${date}&limit=100`,
+        ActivitiesResponseSchema,
+      )
+      const activities = data.activities
+        .map((activity) => activity.title)
+        .filter((title) => title.trim().length > 0)
 
       setActivityCache((current) => ({
         ...current,
@@ -62,10 +59,10 @@ export function ActivityHeatmap() {
   }
 
   const getColor = (count: number) => {
-    if (count === 0) return 'bg-muted dark:bg-muted';
-    if (count <= 2) return 'bg-emerald-200';
-    if (count <= 4) return 'bg-emerald-400';
-    if (count <= 6) return 'bg-teal-500';
+    if (count === 0) {return 'bg-muted dark:bg-muted';}
+    if (count <= 2) {return 'bg-emerald-200';}
+    if (count <= 4) {return 'bg-emerald-400';}
+    if (count <= 6) {return 'bg-teal-500';}
     return 'bg-cyan-700';
   };
 
@@ -134,9 +131,9 @@ export function ActivityHeatmap() {
   let currentMonth = '';
   // We'll compute labels for the columns we render
   weeks.forEach((week, i) => {
-    if (!week || week.length === 0) return;
+    if (!week || week.length === 0) {return;}
     const firstValidDay = week.find((d) => d.count !== -1);
-    if (!firstValidDay) return;
+    if (!firstValidDay) {return;}
     const date = new Date(firstValidDay.date);
     const month = date.toLocaleDateString('en-US', { month: 'short' });
     if (month !== currentMonth) {
@@ -237,11 +234,11 @@ export function ActivityHeatmap() {
           <div className="flex items-center justify-end gap-2 mt-4 text-xs text-slate-500">
             <span>Less</span>
             <div className="flex gap-1">
-              <div className="w-3 h-3 rounded-[3px] bg-slate-100 ring-1 ring-inset ring-slate-200"></div>
-              <div className="w-3 h-3 rounded-[3px] bg-emerald-200"></div>
-              <div className="w-3 h-3 rounded-[3px] bg-emerald-400"></div>
-              <div className="w-3 h-3 rounded-[3px] bg-teal-500"></div>
-              <div className="w-3 h-3 rounded-[3px] bg-cyan-700"></div>
+              <div className="w-3 h-3 rounded-[3px] bg-slate-100 ring-1 ring-inset ring-slate-200" />
+              <div className="w-3 h-3 rounded-[3px] bg-emerald-200" />
+              <div className="w-3 h-3 rounded-[3px] bg-emerald-400" />
+              <div className="w-3 h-3 rounded-[3px] bg-teal-500" />
+              <div className="w-3 h-3 rounded-[3px] bg-cyan-700" />
             </div>
             <span>More</span>
           </div>

@@ -1,9 +1,27 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
-import { Subject } from '@/lib/db/models/Subject'
+import { NextResponse } from 'next/server'
+
 import mongoose from 'mongoose'
+
+import { auth } from '@/lib/auth/server'
+import { type IWhiteboard, Subject } from '@/lib/db/models/Subject'
+import connectToDB from '@/lib/db/mongoose'
+import { WhiteboardCreateBodySchema } from '@/types/api'
+
+// Sorted whiteboard list (newest first) — extracted because GET, POST, and DELETE all return it.
+function sortByCreatedDateDesc(boards: IWhiteboard[]) {
+  return [...boards].sort(
+    (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
+  )
+}
+
+function parseObjectId(id: string) {
+  try {
+    return new mongoose.Types.ObjectId(id.trim())
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -17,28 +35,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: false, error: 'subjectId is required' }, { status: 400 })
     }
 
-    await connectToDB()
-    let oid;
-    try {
-      oid = new mongoose.Types.ObjectId(subjectId.trim());
-    } catch (e) {
+    const oid = parseObjectId(subjectId)
+    if (!oid) {
       return NextResponse.json({ ok: false, error: 'invalid id format' }, { status: 400 })
     }
 
-    const subject = await (Subject as any).collection.findOne({ _id: oid })
-    
-    if (!subject || subject.userId.toString() !== session.user.id) {
+    await connectToDB()
+    const subject = await Subject.findOne({ _id: oid, userId: session.user.id })
+      .select('whiteboards')
+      .lean<{ whiteboards?: IWhiteboard[] } | null>()
+
+    if (!subject) {
       return NextResponse.json({ ok: false, error: 'subject not found' }, { status: 404 })
     }
 
-    const whiteboards = (subject.whiteboards ?? []).sort((a: any, b: any) => 
-      new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-    )
-
-    return NextResponse.json({ ok: true, whiteboards })
-  } catch (error: any) {
+    return NextResponse.json({
+      ok: true,
+      whiteboards: sortByCreatedDateDesc(subject.whiteboards ?? []),
+    })
+  } catch (error) {
     console.error('Whiteboard Load Error:', error)
-    return NextResponse.json({ ok: false, error: error?.message || 'Server error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }
 
@@ -49,59 +67,44 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json()
-    const subjectId = body.subjectId || body.directoryId
-    const image = body.image
-    const title = body.title
-
-    if (!subjectId || !image) {
-      return NextResponse.json({ ok: false, error: 'subjectId and image are required' }, { status: 400 })
+    const rawBody: unknown = await request.json()
+    const parsed = WhiteboardCreateBodySchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { ok: false, error: parsed.error.message },
+        { status: 400 },
+      )
     }
 
-    await connectToDB()
-    let oid;
-    try {
-      oid = new mongoose.Types.ObjectId(subjectId.trim());
-    } catch (e) {
+    const oid = parseObjectId(parsed.data.subjectId)
+    if (!oid) {
       return NextResponse.json({ ok: false, error: 'invalid id format' }, { status: 400 })
     }
 
-    const whiteboard = {
-      title: title || 'Whiteboard',
-      image,
-      createdDate: new Date(),
-    }
-    
-    const whiteboardWithId = {
-      ...whiteboard,
-      _id: new mongoose.Types.ObjectId(),
-    }
-
-    const result = await (Subject as any).collection.findOneAndUpdate(
-      { _id: oid, userId: new mongoose.Types.ObjectId(session.user.id) },
-      { $push: { whiteboards: whiteboardWithId } },
-      { returnDocument: 'after' }
-    )
-
-    const updatedSubject = result.value || result
-
-    if (!updatedSubject) {
+    await connectToDB()
+    const subject = await Subject.findOne({ _id: oid, userId: session.user.id })
+    if (!subject) {
       return NextResponse.json({ ok: false, error: 'subject not found' }, { status: 404 })
     }
 
-    const whiteboards = updatedSubject.whiteboards ?? []
-    const sortedWhiteboards = [...whiteboards].sort((a: any, b: any) => 
-      new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-    )
+    const newWhiteboard: IWhiteboard = {
+      _id: new mongoose.Types.ObjectId(),
+      title: parsed.data.title || 'Whiteboard',
+      image: parsed.data.image,
+      createdDate: new Date(),
+    }
+    subject.whiteboards.push(newWhiteboard)
+    await subject.save()
 
-    return NextResponse.json({ 
-      ok: true, 
-      whiteboard: whiteboardWithId, 
-      whiteboards: sortedWhiteboards 
+    return NextResponse.json({
+      ok: true,
+      whiteboard: newWhiteboard,
+      whiteboards: sortByCreatedDateDesc(subject.whiteboards),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Whiteboard Save Error:', error)
-    return NextResponse.json({ ok: false, error: error?.message || 'Server error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }
 
@@ -121,68 +124,48 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ ok: false, error: 'subjectId is required' }, { status: 400 })
     }
 
-    await connectToDB()
-    
-    let oid;
-    try {
-      oid = new mongoose.Types.ObjectId(subjectId);
-    } catch (e) {
+    const oid = parseObjectId(subjectId)
+    if (!oid) {
       return NextResponse.json({ ok: false, error: 'invalid id format' }, { status: 400 })
     }
 
-    const subject = await (Subject as any).collection.findOne({ _id: oid })
+    await connectToDB()
+    const subject = await Subject.findOne({ _id: oid })
     if (!subject) {
       return NextResponse.json({ ok: false, error: 'subject not found' }, { status: 404 })
     }
-    
     if (subject.userId.toString() !== session.user.id) {
       return NextResponse.json({ ok: false, error: 'unauthorized access' }, { status: 403 })
     }
 
-    const initialWhiteboards = subject.whiteboards ?? []
-    
-    // Nuclear Deletion: Try matching by multiple fields
-    const filteredWhiteboards = initialWhiteboards.filter((w: any) => {
-      // 1. Try ID
-      const wId = (w._id?.toString() || w.id?.toString() || '').trim()
-      if (whiteboardId && wId === whiteboardId) return false
-      
-      // 2. Try exact createdDate string
-      if (createdDate && w.createdDate) {
-         if (w.createdDate.toString() === createdDate) return false
-         if (new Date(w.createdDate).toISOString() === new Date(createdDate).toISOString()) return false
+    const initialCount = subject.whiteboards.length
+    // Match by ID first; if not present, fall back to exact-or-parsed createdDate compare.
+    subject.whiteboards = subject.whiteboards.filter((board) => {
+      const boardId = board._id?.toString() ?? ''
+      if (whiteboardId && boardId === whiteboardId) {
+        return false
       }
-      
+      if (createdDate && board.createdDate) {
+        const boardDateIso = new Date(board.createdDate).toISOString()
+        const targetIso = new Date(createdDate).toISOString()
+        if (boardDateIso === targetIso) {
+          return false
+        }
+      }
       return true
+    }) as typeof subject.whiteboards
+    await subject.save()
+
+    return NextResponse.json({
+      ok: true,
+      whiteboards: sortByCreatedDateDesc(subject.whiteboards),
+      debug: {
+        removed: initialCount - subject.whiteboards.length,
+      },
     })
-
-    console.log('DELETE Debug:', { 
-        subjectId, 
-        whiteboardId, 
-        initialCount: initialWhiteboards.length, 
-        finalCount: filteredWhiteboards.length 
-    })
-
-    const updateResult = await (Subject as any).collection.updateOne(
-      { _id: oid },
-      { $set: { whiteboards: filteredWhiteboards } }
-    )
-
-    const sortedWhiteboards = [...filteredWhiteboards].sort((a: any, b: any) => 
-      new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-    )
-
-    return NextResponse.json({ 
-      ok: true, 
-      whiteboards: sortedWhiteboards,
-      debug: { 
-        matched: updateResult.matchedCount, 
-        modified: updateResult.modifiedCount,
-        removed: initialWhiteboards.length - filteredWhiteboards.length
-      }
-    })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Whiteboard Delete Error:', error)
-    return NextResponse.json({ ok: false, error: error?.message || 'Server error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }

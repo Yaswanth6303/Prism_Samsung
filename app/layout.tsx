@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import {
   Geist,
   Geist_Mono,
@@ -8,12 +9,14 @@ import {
   Lora,
   Playfair_Display,
 } from "next/font/google";
+
 import "./globals.css";
-import { COLOR_THEME_STORAGE_KEY } from "@/lib/theme/color-theme";
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import { QueryProvider } from "@/components/providers/query-provider";
-import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
+
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { COLOR_THEME_STORAGE_KEY } from "@/lib/theme/color-theme";
 
 // Root layout sets the shared fonts, providers, and toaster used by every page.
 const geistSans = Geist({

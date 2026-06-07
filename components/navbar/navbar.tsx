@@ -1,9 +1,30 @@
 "use client";
 
+import { useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { buttonVariants, Button } from "../ui/button";
+
+import {
+  Home,
+  Trophy,
+  Activity,
+  User,
+  HelpCircle,
+  LogOut,
+  Settings,
+  LoaderIcon,
+  Book,
+  Menu,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { authClient } from "@/lib/auth/client";
+
+import { ToggleColorTheme } from "./toggle-color-theme";
+import { ToggleTheme } from "./toggle-theme";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { buttonVariants, Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,25 +33,9 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
-import {
-  Home,
-  Trophy,
-  Activity,
-  User,
-  MessageCircle,
-  HelpCircle,
-  LogOut,
-  Settings,
-  LoaderIcon,
-  MessageSquare,
-  Book,
-  Menu,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { ToggleColorTheme } from "./toggle-color-theme";
-import { ToggleTheme } from "./toggle-theme";
-import { authClient } from "@/lib/auth/client";
+
+
+
 
 // The navbar is the main shell for navigation, auth state, and quick account actions.
 export function NavBar() {
@@ -69,7 +74,7 @@ export function NavBar() {
 
   // Initials keep the avatar placeholder readable even when the user has no uploaded image.
   const getInitials = (name?: string | null) => {
-    if (!name) return "U";
+    if (!name) {return "U";}
     return name
       .split(" ")
       .map((n) => n[0])

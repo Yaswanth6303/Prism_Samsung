@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
 import { z } from 'zod'
+
 import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
-import { User } from '@/lib/db/models/User'
 import { Activity } from '@/lib/db/models/Activity'
 import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
+import { User } from '@/lib/db/models/User'
+import connectToDB from '@/lib/db/mongoose'
 import { pointsFor } from '@/lib/services/points'
 import { updateStreakFromLogs } from '@/lib/services/streak'
 
@@ -107,11 +109,11 @@ export async function POST(request: Request) {
   
   // Convert the submitted activity type into the scoring model the rest of the app uses.
     let pts = 0;
-    if (type === 'gym') pts = pointsFor('gym_session', value)
-    else if (type === 'jogging') pts = pointsFor('jog_per_km', value)
-    else if (type === 'github') pts = pointsFor('github_commit', value)
-    else if (type === 'leetcode') pts = pointsFor('leetcode_easy', value) // rough approx
-    else pts = value
+    if (type === 'gym') {pts = pointsFor('gym_session', value)}
+    else if (type === 'jogging') {pts = pointsFor('jog_per_km', value)}
+    else if (type === 'github') {pts = pointsFor('github_commit', value)}
+    else if (type === 'leetcode') {pts = pointsFor('leetcode_easy', value)} // rough approx
+    else {pts = value}
 
     const activityEvent = new Activity({
       userId,
@@ -169,10 +171,10 @@ export async function POST(request: Request) {
     const $inc: Record<string, number> = {
       totalPoints: pts,
     }
-    if (type === 'gym') $inc.gymSessions = 1
-    if (type === 'jogging') $inc.joggingDistance = value
-    if (type === 'leetcode') $inc.leetcodeSolved = value
-    if (type === 'github') $inc.githubContributions = value
+    if (type === 'gym') {$inc.gymSessions = 1}
+    if (type === 'jogging') {$inc.joggingDistance = value}
+    if (type === 'leetcode') {$inc.leetcodeSolved = value}
+    if (type === 'github') {$inc.githubContributions = value}
 
     await User.updateOne(
       { _id: userId },

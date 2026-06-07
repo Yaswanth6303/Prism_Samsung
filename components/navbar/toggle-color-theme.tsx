@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, Palette } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { Check, Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {

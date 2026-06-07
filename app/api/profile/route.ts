@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
 import { z } from 'zod'
+
 import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
 import { User } from '@/lib/db/models/User'
+import connectToDB from '@/lib/db/mongoose'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,9 +98,9 @@ export async function PATCH(request: Request) {
   await connectToDB()
   // Only include fields that were actually provided so we do not overwrite values by accident.
   const update: Record<string, string> = {}
-  if (parsed.data.name !== undefined) update.name = parsed.data.name.trim()
-  if (parsed.data.githubUsername !== undefined) update.githubUsername = parsed.data.githubUsername.trim()
-  if (parsed.data.leetcodeUsername !== undefined) update.leetcodeUsername = parsed.data.leetcodeUsername.trim()
+  if (parsed.data.name !== undefined) {update.name = parsed.data.name.trim()}
+  if (parsed.data.githubUsername !== undefined) {update.githubUsername = parsed.data.githubUsername.trim()}
+  if (parsed.data.leetcodeUsername !== undefined) {update.leetcodeUsername = parsed.data.leetcodeUsername.trim()}
 
   const user = await User.findByIdAndUpdate(session.user.id, { $set: update }, { new: true }).lean()
   if (!user) {

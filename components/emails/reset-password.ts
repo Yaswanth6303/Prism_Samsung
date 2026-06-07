@@ -9,7 +9,7 @@ export function getResetPasswordEmail({
   companyName?: string;
   expiresInMinutes?: number;
 }) {
-  const truncatedUrl = url.length > 72 ? url.slice(0, 69) + "..." : url;
+  const truncatedUrl = url.length > 72 ? `${url.slice(0, 69)  }...` : url;
 
   // The reset email uses plain table markup because that is the most dependable structure in email clients.
   return `

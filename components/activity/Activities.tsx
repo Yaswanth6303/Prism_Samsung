@@ -1,12 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Code2, RefreshCcw, X } from "lucide-react";
-import { GithubIcon } from "../icons/GithubIcon";
-import { ActivityCard } from "./ActivityCard";
+
 import { Skeleton } from "@/components/ui/skeleton";
-import {Activity, Profile, ActivityOption} from "@/types";
+import { apiFetch, ApiError } from "@/lib/api/fetch";
+import {type Activity, type Profile, type ActivityOption} from "@/types";
+import {
+  ActivitiesResponseSchema,
+  ActivityCreateResponseSchema,
+  PlatformSyncResponseSchema,
+  type PlatformSyncResponse,
+  ProfileResponseSchema,
+} from "@/types/api";
+
+import { ActivityCard } from "./ActivityCard";
+import { GithubIcon } from "../icons/GithubIcon";
 
 // type ActivityType = 'github' | 'leetcode' | 'gym' | 'jogging' | 'study' | 'project'
 
@@ -69,29 +80,29 @@ export function Activities() {
 
   // Manual logs and live profile data are loaded together so the page always reflects the latest state.
   const loadActivities = useCallback(async () => {
-    const response = await fetch('/api/activities?limit=50');
-    if (!response.ok) return;
-    const json = await response.json();
-    if (json?.ok && Array.isArray(json.activities)) {
-      setActivities(json.activities);
+    try {
+      const data = await apiFetch('/api/activities?limit=50', ActivitiesResponseSchema);
+      setActivities(data.activities);
+    } catch {
+      // silently keep stale state
     }
   }, []);
 
   // The profile snapshot tells the page whether GitHub or LeetCode can be synced automatically.
   const loadProfile = useCallback(async () => {
-    const response = await fetch('/api/profile');
-    if (!response.ok) return;
-    const json = await response.json();
-    if (json?.ok && json.profile) {
+    try {
+      const data = await apiFetch('/api/profile', ProfileResponseSchema);
       setProfile({
-        githubUsername: json.profile.githubUsername || '',
-        leetcodeUsername: json.profile.leetcodeUsername || '',
-        githubContributions: json.profile.githubContributions || 0,
-        githubPublicRepos: json.profile.githubPublicRepos || 0,
-        githubFollowers: json.profile.githubFollowers || 0,
-        leetcodeSolved: json.profile.leetcodeSolved || 0,
-        lastPlatformSyncAt: json.profile.lastPlatformSyncAt || null,
+        githubUsername: data.profile.githubUsername || '',
+        leetcodeUsername: data.profile.leetcodeUsername || '',
+        githubContributions: data.profile.githubContributions || 0,
+        githubPublicRepos: data.profile.githubPublicRepos || 0,
+        githubFollowers: data.profile.githubFollowers || 0,
+        leetcodeSolved: data.profile.leetcodeSolved || 0,
+        lastPlatformSyncAt: data.profile.lastPlatformSyncAt || null,
       });
+    } catch {
+      // silently keep stale state
     }
   }, []);
 
@@ -114,16 +125,10 @@ export function Activities() {
   const hasConnectedPlatform = Boolean(profile.githubUsername || profile.leetcodeUsername);
 
   // Auto-sync quietly refreshes connected platform data on a timer without requiring a manual click.
-  const autoSyncQuery = useQuery({
+  const autoSyncQuery = useQuery<PlatformSyncResponse>({
     queryKey: ["platform-sync-auto", profile.githubUsername, profile.leetcodeUsername],
-    queryFn: async () => {
-      const response = await fetch('/api/platform/sync', { method: 'POST' });
-      const json = await response.json();
-      if (!response.ok || !json?.ok) {
-        throw new Error(json?.error || json?.errors?.join(', ') || 'Could not sync platforms');
-      }
-      return json as { ok: boolean; pointsAwarded?: number };
-    },
+    queryFn: () =>
+      apiFetch('/api/platform/sync', PlatformSyncResponseSchema, { method: 'POST' }),
     enabled: hasConnectedPlatform,
     refetchInterval: 5 * 60 * 1000,
     refetchIntervalInBackground: false,
@@ -133,7 +138,7 @@ export function Activities() {
 
   useEffect(() => {
     // A successful platform sync should refresh the screen and emit the shared activity event.
-    if (!autoSyncQuery.data) return;
+    if (!autoSyncQuery.data) {return;}
     window.dispatchEvent(new Event('activity:logged'));
     void loadPageData();
   }, [autoSyncQuery.data, loadPageData]);
@@ -157,13 +162,13 @@ export function Activities() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const numericValue = Number(value);
-    if (!selectedOption || !Number.isFinite(numericValue) || numericValue <= 0) return;
+    if (!selectedOption || !Number.isFinite(numericValue) || numericValue <= 0) {return;}
 
     setLoading(true);
   // The sync button gives the user an explicit way to pull fresh GitHub and LeetCode data on demand.
     setStatus('');
     try {
-      const response = await fetch('/api/activities', {
+      const data = await apiFetch('/api/activities', ActivityCreateResponseSchema, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -173,14 +178,12 @@ export function Activities() {
           details: details.trim() || `${numericValue} ${selectedOption.unit}`,
         }),
       });
-      const json = await response.json();
-      if (!response.ok || !json?.ok) throw new Error(json?.error || 'Could not log activity');
 
       setDetails('');
       setCustomTitle('');
       setValue(String(selectedOption.defaultValue));
       setShowAddForm(false);
-      setStatus(`Activity logged for ${json.pointsAwarded} points`);
+      setStatus(`Activity logged for ${data.pointsAwarded} points`);
       window.dispatchEvent(new Event('activity:logged'));
       await loadPageData();
     } catch (error) {
@@ -194,15 +197,25 @@ export function Activities() {
     setSyncing(true);
     setStatus('');
     try {
-      const response = await fetch('/api/platform/sync', { method: 'POST' });
-      const json = await response.json();
-      if (!response.ok || !json?.ok) throw new Error(json?.error || json?.errors?.join(', ') || 'Could not sync platforms');
-      const details = Array.isArray(json.results) ? json.results.map((result: { message: string }) => result.message).join(' | ') : 'Synced latest platform data';
-      setStatus(json.pointsAwarded > 0 ? `${details}. Awarded ${json.pointsAwarded} points.` : details);
+      const data = await apiFetch('/api/platform/sync', PlatformSyncResponseSchema, {
+        method: 'POST',
+      });
+      // Sync route returns ok=false when both providers fail; surface that as an error message.
+      if (!data.ok) {
+        throw new Error(data.errors.join(', ') || 'Could not sync platforms');
+      }
+      const details = data.results.length > 0
+        ? data.results.map((result) => result.message).join(' | ')
+        : 'Synced latest platform data';
+      setStatus(data.pointsAwarded > 0 ? `${details}. Awarded ${data.pointsAwarded} points.` : details);
       window.dispatchEvent(new Event('activity:logged'));
       await loadPageData();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Could not sync platforms');
+      const message =
+        error instanceof ApiError || error instanceof Error
+          ? error.message
+          : 'Could not sync platforms';
+      setStatus(message);
     } finally {
       setSyncing(false);
     }

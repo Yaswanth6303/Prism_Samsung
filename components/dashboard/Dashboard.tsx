@@ -1,9 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+
+import dynamic from "next/dynamic";
+import Link from "next/link";
+
 import {
   TrendingUp,
-  Flame,
   Trophy,
   Code2,
   Dumbbell,
@@ -11,15 +14,18 @@ import {
   BrainCircuit,
   ArrowRight,
 } from "lucide-react";
-import { GithubIcon } from "../icons/GithubIcon";
-import Link from "next/link";
-import dynamic from "next/dynamic";
+
 import { ActivityHeatmap } from "../activity/ActivityHeatmap";
+import { GithubIcon } from "../icons/GithubIcon";
+
 const StreakDisplay = dynamic(() => import('../streak/StreakDisplay').then(m => ({ default: m.StreakDisplay })), { ssr: false })
 import { ActivityCard } from "../activity/ActivityCard";
+
 // import { Leaderboard } from '../leaderboard/Leaderboard'
 // import { ClawMind } from '../study/ClawMind'
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/api/fetch";
+import { ActivitiesResponseSchema, type ActivityItem, StatsResponseSchema } from "@/types/api";
 
 const statSurface =
   "rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm ring-1 ring-foreground/10";
@@ -38,37 +44,27 @@ export function Dashboard() {
     githubUsername: '',
     leetcodeUsername: '',
   })
-  const [activities, setActivities] = useState<any[]>([])
+  const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   // Load both the summary stats and the recent feed together so the page can hydrate as one coherent view.
   useEffect(() => {
     async function load() {
       setIsLoading(true)
-      try {
-        const [sres, ares] = await Promise.all([
-          fetch('/api/stats').catch(() => null),
-          fetch('/api/activities').catch(() => null)
-        ])
-        
-        if (sres?.ok) {
-          const json = await sres.json()
-          if (json?.ok && json.stats) setStats((prev) => ({ ...prev, ...json.stats }))
-        }
-        
-        if (ares?.ok) {
-          const json = await ares.json()
-          if (json?.ok && Array.isArray(json.activities)) {
-            setActivities(json.activities.slice(0, 5))
-          }
-        }
-      } catch (e) {
-        // ignore errors
-      } finally {
-        setIsLoading(false)
+      // allSettled keeps one failing endpoint from blocking the rest of the dashboard.
+      const [statsResult, activitiesResult] = await Promise.allSettled([
+        apiFetch('/api/stats', StatsResponseSchema),
+        apiFetch('/api/activities', ActivitiesResponseSchema),
+      ])
+      if (statsResult.status === 'fulfilled') {
+        setStats((prev) => ({ ...prev, ...statsResult.value.stats }))
       }
+      if (activitiesResult.status === 'fulfilled') {
+        setActivities(activitiesResult.value.activities.slice(0, 5))
+      }
+      setIsLoading(false)
     }
-    load()
+    void load()
   }, [])
 
   // Skeletons keep the layout stable while data is loading so the page does not jump around.
@@ -180,7 +176,7 @@ export function Dashboard() {
           { id: 'jogging', label: 'Jogging', value: stats.joggingDistance, unit: 'km', icon: Footprints, colorClass: 'text-green-600 dark:text-green-500', url: null }
         ].filter(s => s.value > 0).sort((a, b) => b.value - a.value);
 
-        if (freqStats.length === 0) return null;
+        if (freqStats.length === 0) {return null;}
 
         return (
           <div className="mb-4 sm:mb-6">
@@ -222,14 +218,7 @@ export function Dashboard() {
           <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">Recent Activities</h2>
           <div className="space-y-3">
             {activities.slice(0, 5).map((activity) => (
-              <ActivityCard key={activity.id ?? activity._id} activity={{
-                id: activity.id ?? activity._id,
-                type: activity.type,
-                title: activity.title,
-                date: activity.date || activity.createdAt || activity.dateString,
-                points: activity.points ?? activity.value ?? 0,
-                details: activity.details,
-              }} />
+              <ActivityCard key={activity.id} activity={activity} />
             ))}
           </div>
         </div>

@@ -218,9 +218,9 @@ export function getLeaderboard(input: { metric: Metric; period: Period; collegeI
   const users = Array.from(state.users.values()).filter((u) => !input.collegeId || u.collegeId === input.collegeId)
 
   const scoreOf = (u: UserProfile) => {
-    if (input.metric === 'github') return u.githubPoints
-    if (input.metric === 'leetcode') return u.leetcodePoints
-    if (input.metric === 'streak') return u.currentStreak
+    if (input.metric === 'github') {return u.githubPoints}
+    if (input.metric === 'leetcode') {return u.leetcodePoints}
+    if (input.metric === 'streak') {return u.currentStreak}
     return u.totalPoints
   }
 
@@ -302,7 +302,7 @@ function buildQuestionsFromNote(content: string): QuizQuestion[] {
 export function createQuizFromNote(input: { userId: string; noteId: string }) {
   ensureUser(input.userId)
   const note = state.notes.find((n) => n.id === input.noteId && n.userId === input.userId)
-  if (!note) return null
+  if (!note) {return null}
 
   const quiz: Quiz = {
     id: id('quiz'),

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import connectToDB from '@/lib/db/mongoose'
+
 import { User } from '@/lib/db/models/User'
+import connectToDB from '@/lib/db/mongoose'
 import { getLeaderboard, type Metric, type Period } from '@/lib/services/feature-store'
 
 const METRICS: Metric[] = ['points', 'github', 'leetcode', 'streak']

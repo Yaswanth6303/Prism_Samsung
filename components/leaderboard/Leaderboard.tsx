@@ -1,9 +1,13 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+
 import { Medal, Trophy, RefreshCcw } from "lucide-react";
+
 import { Skeleton } from "@/components/ui/skeleton";
-import {LeaderboardEntry} from "@/types"
+import { apiFetch } from "@/lib/api/fetch";
+import {type LeaderboardEntry} from "@/types"
+import { LeaderboardResponseSchema, MyRankResponseSchema } from "@/types/api"
 // type LeaderboardEntry = {
 //   userId?: string
 //   rank: number
@@ -94,51 +98,41 @@ export function Leaderboard() {
     // Fetch the signed-in user's own rank first so the personal result appears as soon as possible.
     const loadUserRank = async () => {
       try {
-        const res = await fetch('/api/leaderboard/my-rank')
-        if (res.ok) {
-          const json = await res.json()
-          if (json?.ok && json?.userEntry) {
-            setUserEntry(normalizeEntry(json.userEntry, 0))
-          }
-        }
-      } catch {}
+        const data = await apiFetch('/api/leaderboard/my-rank', MyRankResponseSchema)
+        setUserEntry(normalizeEntry(data.userEntry, 0))
+      } catch {
+        // silently fail
+      }
     }
 
     // The full leaderboard is fetched in parallel because it is useful, but not required for first paint.
     const loadFullLeaderboard = async () => {
       setLoading(true)
       try {
-        const res = await fetch('/api/leaderboard')
-        if (res.ok) {
-          const json = await res.json()
-          const data = Array.isArray(json?.leaderboard) ? json.leaderboard : json?.leaderboard?.top
-          if (json?.ok && Array.isArray(data)) {
-            setList(data.map(normalizeEntry))
-          }
-        }
-      } catch {}
-      finally {
+        const data = await apiFetch('/api/leaderboard', LeaderboardResponseSchema)
+        setList(data.leaderboard.map(normalizeEntry))
+      } catch {
+        // silently fail
+      } finally {
         setLoading(false)
       }
     }
 
     // Running both requests together keeps the overall wait time lower.
     setInitialLoading(true)
-    Promise.all([loadUserRank(), loadFullLeaderboard()]).finally(() => setInitialLoading(false))
+    void Promise.all([loadUserRank(), loadFullLeaderboard()]).finally(() =>
+      setInitialLoading(false),
+    )
   }, [])
 
   const load = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/leaderboard')
-      if (!res.ok) return
-      const json = await res.json()
-      const data = Array.isArray(json?.leaderboard) ? json.leaderboard : json?.leaderboard?.top
-      if (json?.ok && Array.isArray(data)) {
-        setList(data.map(normalizeEntry))
-      }
-    } catch {}
-    finally {
+      const data = await apiFetch('/api/leaderboard', LeaderboardResponseSchema)
+      setList(data.leaderboard.map(normalizeEntry))
+    } catch {
+      // silently fail
+    } finally {
       setLoading(false)
     }
   }

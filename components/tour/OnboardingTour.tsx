@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useCallback } from "react";
+
 import { driver } from "driver.js";
+
 import "driver.js/dist/driver.css";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -160,7 +162,7 @@ export function OnboardingTour() {
   const runTourForPage = useCallback(
     (pageIdx: number) => {
       const page = TOUR_FLOW[pageIdx];
-      if (!page) return;
+      if (!page) {return;}
 
       // Each page owns its own steps so the tour stays aligned with the actual screen the user sees.
       const steps = page.steps();

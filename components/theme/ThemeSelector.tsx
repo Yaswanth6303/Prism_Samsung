@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
-import { COLOR_THEME_OPTIONS, applyColorTheme, readStoredColorTheme, ColorThemeId } from "@/lib/theme/color-theme";
+
 import { Palette, Moon, Sun, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
+
+import { COLOR_THEME_OPTIONS, applyColorTheme, readStoredColorTheme, type ColorThemeId } from "@/lib/theme/color-theme";
 
 // The theme selector combines color palettes and light/dark mode in one compact popover.
 export function ThemeSelector() {
@@ -23,7 +25,7 @@ export function ThemeSelector() {
     setColorTheme(id);
   };
 
-  if (!mounted) return null;
+  if (!mounted) {return null;}
 
   return (
     <div className="relative z-50">

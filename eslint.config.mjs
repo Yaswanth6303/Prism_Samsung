@@ -1,21 +1,13 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
+import nextPlugin from "@next/eslint-plugin-next";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import importPlugin from "eslint-plugin-import";
 import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import globals from "globals";
 
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
@@ -31,6 +23,7 @@ const config = [
       "coverage/**",
       "*.config.js",
       "*.config.cjs",
+      "*.config.mjs",
       "next-env.d.ts",
     ],
   },
@@ -38,8 +31,8 @@ const config = [
   // ── Base JS recommended ───────────────────────────────────────────────────
   js.configs.recommended,
 
-  // ── Next.js core web vitals (via FlatCompat) ─────────────────────────────
-  ...compat.extends("next/core-web-vitals"),
+  // ── Next.js core web vitals (native flat config — no FlatCompat needed) ──
+  nextPlugin.configs["core-web-vitals"],
 
   // ── TypeScript + React + Hooks + Import + a11y ───────────────────────────
   {
@@ -51,6 +44,11 @@ const config = [
         sourceType: "module",
         ecmaFeatures: { jsx: true },
         project: "./tsconfig.json",
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2025,
       },
     },
     plugins: {
@@ -103,7 +101,7 @@ const config = [
       // ── React ─────────────────────────────────────────────────────────────
       "react/react-in-jsx-scope": "off", // Not needed in Next.js (React 17+)
       "react/prop-types": "off", // TypeScript handles this
-      "react/jsx-no-target-blank": ["error", { enforceDynamicLinks: true }],
+      "react/jsx-no-target-blank": ["error", { enforceDynamicLinks: "always" }],
       "react/no-danger": "error",
       "react/no-array-index-key": "warn",
       "react/jsx-curly-brace-presence": [
@@ -219,6 +217,16 @@ const config = [
     files: ["app/api/**", "lib/server/**", "server/**", "scripts/**"],
     rules: {
       "no-console": "off",
+    },
+  },
+
+  // ── TypeScript files: TS compiler handles undef-checking (official typescript-eslint recommendation) ──
+  // Base no-undef misfires on namespace types like React.ChangeEvent that TS resolves correctly.
+  // Plain .js/.mjs/.cjs config files keep the rule active.
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "no-undef": "off",
     },
   },
 ];

@@ -1,5 +1,7 @@
 import Link from "next/link";
+
 import { ArrowLeft } from "lucide-react";
+
 import { buttonVariants } from "@/components/ui/button";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

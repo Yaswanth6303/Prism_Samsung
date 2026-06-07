@@ -1,23 +1,31 @@
 "use client";
 
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { SocialAuthButtons } from "@/components/auth/social-auth";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "@/app/schemas/auth";
+import { useState, useEffect } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth/client";
-import { getSignInErrorMessage } from "@/errors/auth";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderIcon, Mail } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+
+import { loginSchema } from "@/app/schemas/auth";
+import { SocialAuthButtons } from "@/components/auth/social-auth";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+
+
+
+
+import { getSignInErrorMessage } from "@/errors/auth";
+import { authClient } from "@/lib/auth/client";
+
 import { toast } from "sonner";
-import z from "zod";
+
+import type z from "zod";
 
 // Login keeps all sign-in paths in one place so returning users can choose the fastest route back in.
 export default function LoginPage() {

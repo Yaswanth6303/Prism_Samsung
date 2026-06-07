@@ -1,9 +1,13 @@
 "use client"
 
-import { Calendar as CalendarIcon, Loader2, Dumbbell, Route, Code, SearchCode, BookOpen, Presentation } from "lucide-react";
 import { useEffect, useState } from 'react'
+
+import { Calendar as CalendarIcon, Loader2, Dumbbell, Route, Code, SearchCode, BookOpen, Presentation } from "lucide-react";
+
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
-import {ActivityEvent} from "@/types"
+import { apiFetch } from "@/lib/api/fetch"
+import {type ActivityEvent} from "@/types"
+import { ActivitiesResponseSchema, HeatmapResponseSchema, StatsResponseSchema } from "@/types/api"
 // The streak panel combines the calendar and day detail view so consistency feels visible, not abstract.
 
 // type ActivityEvent = {
@@ -42,35 +46,29 @@ export function StreakDisplay() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const sres = await fetch('/api/stats')
-        if (sres.ok) {
-          const json = await sres.json()
-          if (json?.ok && json.stats) {
-            setCurrentStreak(json.stats.currentStreak ?? 0)
-            setLongestStreak(json.stats.longestStreak ?? 0)
-          }
-        }
-      } catch {}
+        const stats = await apiFetch('/api/stats', StatsResponseSchema)
+        setCurrentStreak(stats.stats.currentStreak ?? 0)
+        setLongestStreak(stats.stats.longestStreak ?? 0)
+      } catch {
+        // silently keep stale streak
+      }
 
       try {
         const year = new Date().getFullYear()
-        const hres = await fetch(`/api/heatmap?year=${year}`)
-        if (hres.ok) {
-          const j = await hres.json()
-          const heatmap = j?.heatmap ?? j?.data
-          if (j?.ok && Array.isArray(heatmap)) {
-            const activeSet = new Set<string>()
-            heatmap.forEach((p: { date: string; count: number }) => {
-              if (p.count > 0) activeSet.add(p.date)
-            })
-            setActiveDates(activeSet)
-          }
-        }
-      } catch {}
+        const heatmap = await apiFetch(`/api/heatmap?year=${year}`, HeatmapResponseSchema)
+        const activeSet = new Set<string>()
+        heatmap.data.forEach((p) => {
+          if (p.count > 0) {activeSet.add(p.date)}
+        })
+        setActiveDates(activeSet)
+      } catch {
+        // silently keep stale active dates
+      }
     }
-    loadStats()
-    window.addEventListener('activity:logged', loadStats)
-    return () => window.removeEventListener('activity:logged', loadStats)
+    void loadStats()
+    const handler = () => { void loadStats() }
+    window.addEventListener('activity:logged', handler)
+    return () => window.removeEventListener('activity:logged', handler)
   }, [])
 
   // When the selected date changes, refresh the right-hand activity list for that exact day.
@@ -81,25 +79,20 @@ export function StreakDisplay() {
         // Adjust date to match local timezone YYYY-MM-DD
         const offset = selectedDate.getTimezoneOffset()
         const dateString = new Date(selectedDate.getTime() - (offset*60*1000)).toISOString().split('T')[0]
-        
-        const res = await fetch(`/api/activities?date=${dateString}`)
-        if (res.ok) {
-          const json = await res.json()
-          if (json?.ok && Array.isArray(json.activities)) {
-            setActivities(json.activities)
-          } else {
-            setActivities([])
-          }
-        } else {
-          setActivities([])
-        }
+
+        const data = await apiFetch(
+          `/api/activities?date=${dateString}`,
+          ActivitiesResponseSchema,
+        )
+        // ActivityEvent in @/types requires `details: string` (not optional), which the API guarantees.
+        setActivities(data.activities as ActivityEvent[])
       } catch {
         setActivities([])
       } finally {
         setLoadingActivities(false)
       }
     }
-    loadActivities()
+    void loadActivities()
   }, [selectedDate])
 
   return (

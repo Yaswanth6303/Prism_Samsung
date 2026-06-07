@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
 import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
 import { Activity } from '@/lib/db/models/Activity'
 import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
+import connectToDB from '@/lib/db/mongoose'
 
 // This endpoint packages yearly activity into a heatmap-friendly structure for the calendar view.
 export async function GET(request: Request) {
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
     // Group activity titles by day so the front end can render a compact tooltip per cell.
     const activitiesByDate = activities.reduce<Record<string, string[]>>((acc, activity) => {
       const date = new Date(activity.date).toISOString().slice(0, 10)
-      if (!acc[date]) acc[date] = []
+      if (!acc[date]) {acc[date] = []}
       acc[date].push(activity.title)
       return acc
     }, {})

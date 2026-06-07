@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 
+import { apiFetch } from '@/lib/api/fetch'
+import { ClawMindResponseSchema } from '@/types/api'
+
 // ClawMind is a tiny chat surface for testing the study assistant without leaving the page.
 export function ClawMind() {
   const [messages, setMessages] = useState<{from: string; text: string}[]>([])
@@ -9,13 +12,15 @@ export function ClawMind() {
 
   // Send keeps the prompt/response loop isolated so the rest of the UI stays simple.
   async function send() {
-    if (!text) return
+    if (!text) {return}
     setMessages(m => [...m, { from: 'you', text }])
     try {
-      const res = await fetch('/api/clawmind', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ message: text }) })
-      if (!res.ok) throw new Error('bad')
-      const j = await res.json()
-      if (j?.ok) setMessages(m => [...m, { from: 'clawmind', text: j.reply }])
+      const data = await apiFetch('/api/clawmind', ClawMindResponseSchema, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      })
+      setMessages(m => [...m, { from: 'clawmind', text: data.reply }])
     } catch {
       setMessages(m => [...m, { from: 'clawmind', text: 'Error: could not reach ClawMind' }])
     }

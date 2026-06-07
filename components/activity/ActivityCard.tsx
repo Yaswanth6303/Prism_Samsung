@@ -1,6 +1,8 @@
 import { Code2, Dumbbell, Footprints, BookOpen, Briefcase } from "lucide-react";
-import { GithubIcon } from "../icons/GithubIcon";
+
 import type { ActivityCardProps} from "@/types";
+
+import { GithubIcon } from "../icons/GithubIcon";
 
 // Each activity card packages the icon, title, points, and date into one compact history row.
 

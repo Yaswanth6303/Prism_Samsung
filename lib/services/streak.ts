@@ -66,7 +66,7 @@ export function recalculateAllStreaks(logs: { date: string; hasActivity: boolean
         tempStreak = 1;
       }
     }
-    if (tempStreak > bestStreak) bestStreak = tempStreak;
+    if (tempStreak > bestStreak) {bestStreak = tempStreak;}
     lastDate = d;
   }
 

@@ -1,13 +1,15 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { ObjectId } from "mongodb";
+
 import { auth } from "@/lib/auth/server";
-import { db } from "@/lib/db/mongo-client";
-import connectToDB from "@/lib/db/mongoose";
 import { Activity } from "@/lib/db/models/Activity";
+import Connection from "@/lib/db/models/Connection";
 import { DailyActivityLog } from "@/lib/db/models/DailyActivityLog";
 import { Subject } from "@/lib/db/models/Subject";
-import Connection from "@/lib/db/models/Connection";
+import { db } from "@/lib/db/mongo-client";
+import connectToDB from "@/lib/db/mongoose";
 
 // better-auth doesn't expose deleteUser over HTTP by default, so this route
 // authenticates the caller and removes their auth records and owned data.

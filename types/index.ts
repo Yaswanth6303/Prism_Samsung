@@ -11,12 +11,12 @@ export interface UserStats {
   joggingDistance: number;
 }
 
-//Activity
+// Activity
 export interface ActivityCardProps {
   activity: Activity;
 }
 
-//ActivityCard
+// ActivityCard
 
 export type ActivityType = "github" | "leetcode" | "gym" | "jogging" | "study" | "project";
 
@@ -46,7 +46,7 @@ export type ActivityOption = {
   unit: string;
 };
 
-//Heatmap
+// Heatmap
 
 export type HeatmapPoint = { date: string; count: number; activities?: string[] };
 export type ActivityCacheEntry = {
@@ -54,7 +54,7 @@ export type ActivityCacheEntry = {
   activities: string[];
 };
 
-//AIStudy
+// AIStudy
 
 export type QuizQuestion = {
   question: string;
@@ -88,7 +88,7 @@ export type Whiteboard = {
   createdDate?: string;
 };
 
-//LeaderBoard
+// LeaderBoard
 export type LeaderboardEntry = {
   userId?: string;
   rank: number;
@@ -100,7 +100,7 @@ export type LeaderboardEntry = {
   isCurrentUser: boolean;
 };
 
-//Streaks
+// Streaks
 export type ActivityEvent = {
   id: string;
   type: "github" | "leetcode" | "gym" | "jogging" | "study" | "project";

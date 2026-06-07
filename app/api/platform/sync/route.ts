@@ -1,15 +1,16 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
 import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
 import { Activity } from '@/lib/db/models/Activity'
 import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
 import { User } from '@/lib/db/models/User'
+import { db } from '@/lib/db/mongo-client'
+import connectToDB from '@/lib/db/mongoose'
 import { fetchGitHubSnapshot, fetchLeetCodeSnapshot, type PlatformSnapshot } from '@/lib/integrations/platform-sync'
+import { decrypt } from '@/lib/services/encryption'
 import { pointsFor } from '@/lib/services/points'
 import { recalculateAllStreaks } from '@/lib/services/streak'
-import { decrypt } from '@/lib/services/encryption'
-import { db } from '@/lib/db/mongo-client'
 
 // This endpoint pulls the user's external activity into our local database.
 // Keeping the flow inside one route makes sync predictable and easy to audit.
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
     // Each day is handled independently so retries can safely update one record at a time.
     console.log(`[processHistory] Starting for ${type}, total days: ${Object.keys(history).length}`)
     for (const [dateStr, count] of Object.entries(history)) {
-      if (count <= 0) continue
+      if (count <= 0) {continue}
 
       // Normalize the day range so a contribution always lands on the correct calendar date.
       const startOfDay = new Date(`${dateStr}T00:00:00.000Z`)
@@ -135,7 +136,7 @@ export async function POST(request: Request) {
 
       // Use an upsert so we create the activity once and avoid duplicate records on repeat syncs.
       const filter = {
-        userId: userId,
+        userId,
         type,
         date: { $gte: startOfDay, $lte: endOfDay }
       }
@@ -144,7 +145,7 @@ export async function POST(request: Request) {
         filter,
         {
           $setOnInsert: {
-            userId: userId,
+            userId,
             type,
             title: titleFn(count),
             details,
@@ -211,7 +212,7 @@ export async function POST(request: Request) {
   // LeetCode follows the same shape: keep the profile summary fresh, then persist the dated history.
   if (snapshot.leetcode) {
     user.leetcodeUsername = snapshot.leetcode.username
-    if (!user.avatarUrl && snapshot.leetcode.avatarUrl) user.avatarUrl = snapshot.leetcode.avatarUrl
+    if (!user.avatarUrl && snapshot.leetcode.avatarUrl) {user.avatarUrl = snapshot.leetcode.avatarUrl}
     user.leetcodeSolved = snapshot.leetcode.totalSolved
     user.leetcodeEasySolved = snapshot.leetcode.easySolved
     user.leetcodeMediumSolved = snapshot.leetcode.mediumSolved

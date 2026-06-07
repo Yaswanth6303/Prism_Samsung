@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { type Document, type Model, Schema } from 'mongoose';
 
 // This interface describes the user record shape that all auth, profile, and scoring code relies on.
 export interface IUser extends Document {

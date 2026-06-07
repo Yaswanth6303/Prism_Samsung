@@ -102,8 +102,8 @@ async function fetchGitHubGraphQLHistory(username: string, pat: string): Promise
       }),
     })
 
-    if (!response.ok) return history
-    const json = await response.json() as any
+    if (!response.ok) {return history}
+    const json = await response.json()
     const weeks = json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? []
     for (const week of weeks) {
       for (const day of week.contributionDays ?? []) {
@@ -126,7 +126,7 @@ export async function fetchGitHubSnapshot(username: string, pat?: string) {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   }
-  if (pat) headers.Authorization = `Bearer ${pat}`
+  if (pat) {headers.Authorization = `Bearer ${pat}`}
 
   const [userResponse, eventsResponse] = await Promise.all([
     fetch(`https://api.github.com/users/${encodeURIComponent(cleanUsername)}`, { headers, cache: 'no-store' }),
@@ -150,9 +150,9 @@ export async function fetchGitHubSnapshot(username: string, pat?: string) {
     const events = await eventsResponse.json() as GitHubEvent[]
     events.forEach(event => {
       let count = 0
-      if (event.type === 'PushEvent') count = (event.payload?.commits?.length || 1)
-      if (event.type === 'PullRequestEvent' && ['opened', 'closed', 'reopened'].includes(event.payload?.action || '')) count = 1
-      if (event.type === 'IssuesEvent' && event.payload?.action === 'opened') count = 1
+      if (event.type === 'PushEvent') {count = (event.payload?.commits?.length || 1)}
+      if (event.type === 'PullRequestEvent' && ['opened', 'closed', 'reopened'].includes(event.payload?.action || '')) {count = 1}
+      if (event.type === 'IssuesEvent' && event.payload?.action === 'opened') {count = 1}
       
       if (count > 0 && event.created_at) {
         const date = event.created_at.split('T')[0]
@@ -228,7 +228,7 @@ export async function fetchLeetCodeSnapshot(username: string, authToken?: string
     throw new Error(payload.errors.map((error) => error.message).filter(Boolean).join(', ') || 'LeetCode query failed')
   }
   const user = payload.data?.matchedUser
-  if (!user) throw new Error('LeetCode user not found')
+  if (!user) {throw new Error('LeetCode user not found')}
 
   // We keep solved counts in a map so the final return object can read naturally.
   const solved = new Map((user.submitStatsGlobal?.acSubmissionNum ?? []).map((item) => [item.difficulty, item.count]))

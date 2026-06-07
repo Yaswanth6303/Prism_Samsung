@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { type Document, type Model, Schema } from 'mongoose';
 
 // Notes and whiteboards live inside a subject because the study area is organized around topics.
 export interface INote {

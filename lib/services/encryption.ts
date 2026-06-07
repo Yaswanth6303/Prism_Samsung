@@ -6,19 +6,19 @@ const ALGORITHM = 'aes-256-cbc'
 // Derive a fixed-length key from the environment secret so encryption stays stable across restarts.
 function getKey() {
   const secret = process.env.ENCRYPTION_SECRET
-  if (!secret) throw new Error('ENCRYPTION_SECRET must be set')
+  if (!secret) {throw new Error('ENCRYPTION_SECRET must be set')}
   // SHA-256 gives us a 32-byte key that fits the cipher requirements.
   return crypto.createHash('sha256').update(secret).digest()
 }
 
 // Encrypt user secrets before they ever hit the database.
 export function encrypt(text: string): string {
-  if (!text) return ''
+  if (!text) {return ''}
   const key = getKey()
   const iv = crypto.randomBytes(16)
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
   const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
-  return iv.toString('hex') + ':' + encrypted.toString('hex')
+  return `${iv.toString('hex')  }:${  encrypted.toString('hex')}`
 }
 
 // Decrypt only when the app needs to use a secret for an outbound provider call.
@@ -31,7 +31,7 @@ export function decrypt(payload: string | null | undefined): string {
   try {
     // The payload stores the IV and ciphertext together, separated by a colon.
     const [ivHex, encryptedHex] = payload.split(':')
-    if (!ivHex || !encryptedHex) return ''
+    if (!ivHex || !encryptedHex) {return ''}
     const key = getKey()
     const iv = Buffer.from(ivHex, 'hex')
     const encrypted = Buffer.from(encryptedHex, 'hex')

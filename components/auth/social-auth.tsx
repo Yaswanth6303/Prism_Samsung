@@ -1,9 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LoaderIcon } from "lucide-react";
-import { GoogleIcon } from "../icons/GoogleIcon";
-import { GithubIcon } from "../icons/GithubIcon";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { SocialAuthButtonsProps } from "@/types";
+
+import { GithubIcon } from "../icons/GithubIcon";
+import { GoogleIcon } from "../icons/GoogleIcon";
 
 // Social auth is kept in one component so login and signup can reuse the same provider buttons.
 export function SocialAuthButtons({

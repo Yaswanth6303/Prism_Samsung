@@ -13,6 +13,6 @@ export type PointEvent = keyof typeof POINTS
 
 // Convert one activity into points, or scale it up when the activity has a meaningful amount like kilometers.
 export function pointsFor(event: PointEvent, value = 1) {
-  if (event === 'jog_per_km') return POINTS.jog_per_km * value
+  if (event === 'jog_per_km') {return POINTS.jog_per_km * value}
   return POINTS[event]
 }

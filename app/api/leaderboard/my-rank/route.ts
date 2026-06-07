@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
 import { auth } from '@/lib/auth/server'
-import connectToDB from '@/lib/db/mongoose'
 import { User } from '@/lib/db/models/User'
+import connectToDB from '@/lib/db/mongoose'
 
 // This endpoint is a lightweight shortcut for showing the signed-in user's own leaderboard position.
 export async function GET(request: Request) {

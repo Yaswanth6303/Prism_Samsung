@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { APIError } from "better-auth/api";
+
 import { auth } from "@/lib/auth/server";
 
 // better-auth's setPassword endpoint isn't exposed over HTTP, so we wrap it here

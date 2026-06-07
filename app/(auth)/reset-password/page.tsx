@@ -1,19 +1,22 @@
 "use client";
 
+import { Suspense, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Eye, EyeOff, LoaderIcon } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { resetPasswordSchema } from "@/app/schemas/auth";
+import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { resetPasswordSchema } from "@/app/schemas/auth";
-import Link from "next/link";
-import { authClient } from "@/lib/auth/client";
 import { getResetPasswordErrorMessage } from "@/errors/auth";
-import { CheckCircle, Eye, EyeOff, LoaderIcon } from "lucide-react";
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import z from "zod";
+import { authClient } from "@/lib/auth/client";
+
+import type z from "zod";
 
 export default function ResetPasswordPage() {
   return (

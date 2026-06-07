@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose'
+import mongoose, { type Document, type Model, Schema } from 'mongoose'
 
 // Daily logs summarize whether a user was active on a given calendar day.
 export interface IDailyActivityLog extends Document {

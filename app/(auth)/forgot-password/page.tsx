@@ -1,17 +1,24 @@
 "use client";
 
+import { useState } from "react";
+
+import Link from "next/link";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, CheckCircle, LoaderIcon, Mail } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { forgotPasswordSchema } from "@/app/schemas/auth";
+import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema } from "@/app/schemas/auth";
-import Link from "next/link";
 import { getForgotPasswordErrorMessage } from "@/errors/auth";
-import { ArrowLeft, CheckCircle, LoaderIcon, Mail } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import z from "zod";
+
+
+
+
+import type z from "zod";
 
 // The forgot-password page is a recovery path, so it stays simple and keeps the user focused on one input.
 export default function ForgotPasswordPage() {

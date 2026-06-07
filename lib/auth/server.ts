@@ -2,11 +2,12 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { lastLoginMethod } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
-import { db } from "@/lib/db/mongo-client";
-import { resend } from "@/lib/integrations/resend";
+
+import { getOTPEmail } from "@/components/emails/otp";
 import { getResetPasswordEmail } from "@/components/emails/reset-password";
 import { getVerifyEmailEmail } from "@/components/emails/verify-email";
-import { getOTPEmail } from "@/components/emails/otp";
+import { db } from "@/lib/db/mongo-client";
+import { resend } from "@/lib/integrations/resend";
 
 // Central auth config keeps sign-in, verification, and password reset behavior in one place.
 export const auth = betterAuth({

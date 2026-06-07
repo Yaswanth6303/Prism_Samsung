@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { type Document, type Model, Schema } from 'mongoose';
 
 // Activity records are the durable history of everything the user has done in the app.
 export interface IActivity extends Document {
