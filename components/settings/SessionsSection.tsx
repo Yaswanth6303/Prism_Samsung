@@ -67,7 +67,7 @@ export function SessionsSection({ currentSessionToken }: SessionsSectionProps) {
   }, []);
 
   useEffect(() => {
-    fetchSessions();
+    void fetchSessions();
   }, [fetchSessions]);
 
   const handleRevokeSession = async (sessionToken: string) => {
@@ -75,7 +75,7 @@ export function SessionsSection({ currentSessionToken }: SessionsSectionProps) {
     try {
       await authClient.revokeSession({ token: sessionToken });
       toast.success("Session revoked successfully");
-      fetchSessions();
+      void fetchSessions();
     } catch {
       toast.error("Failed to revoke session. Please try again.");
     } finally {
@@ -88,7 +88,7 @@ export function SessionsSection({ currentSessionToken }: SessionsSectionProps) {
     try {
       await authClient.revokeOtherSessions();
       toast.success("All other sessions have been revoked");
-      fetchSessions();
+      void fetchSessions();
     } catch {
       toast.error("Failed to revoke sessions. Please try again.");
     } finally {

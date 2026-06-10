@@ -94,7 +94,7 @@ export function ConnectedAccountsCard() {
   }, []);
 
   useEffect(() => {
-    fetchLinkedAccounts();
+    void fetchLinkedAccounts();
   }, [fetchLinkedAccounts]);
 
   const handleLinkAccount = async (provider: SocialProvider) => {

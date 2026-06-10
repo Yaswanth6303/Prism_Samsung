@@ -1,10 +1,11 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 
+import type { FilterQuery } from 'mongoose'
 import { z } from 'zod'
 
 import { auth } from '@/lib/auth/server'
-import { Activity } from '@/lib/db/models/Activity'
+import { Activity, type IActivity } from '@/lib/db/models/Activity'
 import { DailyActivityLog } from '@/lib/db/models/DailyActivityLog'
 import { User } from '@/lib/db/models/User'
 import connectToDB from '@/lib/db/mongoose'
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
     const limit = Math.min(Number(searchParams.get('limit') || 25), 100)
     const dateQuery = searchParams.get('date')
 
-    let query: any = { userId }
+    let query: FilterQuery<IActivity> = { userId }
     if (dateQuery) {
       // Build a UTC day range so a local browser timezone does not shift the result.
       const startDate = new Date(dateQuery)

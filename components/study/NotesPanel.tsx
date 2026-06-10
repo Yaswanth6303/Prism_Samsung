@@ -83,10 +83,11 @@ export function NotesPanel({ controller }: NotesPanelProps) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         {notes.map((note) => (
-          <div
+          <button
+            type="button"
             key={note.id}
             onClick={() => goToNote(note)}
-            className="bg-card rounded-2xl p-5 border border-border hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group flex flex-col h-full"
+            className="text-left bg-card rounded-2xl p-5 border border-border hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group flex flex-col h-full"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="p-2.5 bg-blue-100/60 dark:bg-blue-900/30 rounded-xl group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
@@ -117,7 +118,7 @@ export function NotesPanel({ controller }: NotesPanelProps) {
                 <ChevronRight className="w-4 h-4" />
               </div>
             </div>
-          </div>
+          </button>
         ))}
         {notes.length === 0 && (
           <div className="sm:col-span-2 bg-muted/50 rounded-2xl p-12 border-2 border-dashed border-border text-center">

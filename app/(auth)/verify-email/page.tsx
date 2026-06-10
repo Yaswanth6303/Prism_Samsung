@@ -104,7 +104,7 @@ function VerifyEmailContent() {
 
     // Auto-submit when all digits entered
     if (newOtp.every((d) => d !== "") && value) {
-      verifyOTP(newOtp.join(""));
+      void verifyOTP(newOtp.join(""));
     }
   };
 
@@ -129,7 +129,7 @@ function VerifyEmailContent() {
     inputRefs.current[focusIndex]?.focus();
 
     if (pasted.length === 6) {
-      verifyOTP(pasted);
+      void verifyOTP(pasted);
     }
   };
 
@@ -216,7 +216,7 @@ function VerifyEmailContent() {
           type="button"
           onClick={() => {
             setMethod("otp");
-            if (!otpSent) {handleSendOTP();}
+            if (!otpSent) {void handleSendOTP();}
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
             method === "otp"

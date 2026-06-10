@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { z } from "zod";
+
 import { auth } from "@/lib/auth/server";
 import { Subject } from "@/lib/db/models/Subject";
 import { User } from "@/lib/db/models/User";
@@ -8,7 +10,6 @@ import connectToDB from "@/lib/db/mongoose";
 import { callAI } from "@/lib/integrations/ai-client";
 import { decrypt } from "@/lib/services/encryption";
 import { type QuizQuestion, QuizGenerateBodySchema, QuizQuestionSchema } from "@/types/api";
-import { z } from "zod";
 
 const QuizArraySchema = z.array(QuizQuestionSchema);
 

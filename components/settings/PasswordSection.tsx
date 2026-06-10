@@ -34,7 +34,7 @@ export function PasswordSection() {
   }, []);
 
   useEffect(() => {
-    checkHasPassword();
+    void checkHasPassword();
   }, [checkHasPassword]);
 
   // Password changes are guarded with a few simple checks before the request leaves the browser.
@@ -108,8 +108,8 @@ export function PasswordSection() {
           setConfirmPassword("");
           setHasPassword(true);
         } else {
-          const data = await res.json().catch(() => null);
-          toast.error(data?.message || "Something went wrong. Please try again.");
+          const data = (await res.json().catch(() => null)) as { message?: string } | null;
+          toast.error(data?.message ?? "Something went wrong. Please try again.");
         }
       }
     } catch {

@@ -40,8 +40,10 @@ export function ThemeSelector() {
       {/* The popover stays open only when the user explicitly asks for theme controls. */}
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
+          <button
+            type="button"
+            aria-label="Close color theme picker"
+            className="fixed inset-0 z-40 cursor-default"
             onClick={() => setIsOpen(false)}
           />
           <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">

@@ -68,7 +68,7 @@ const SubjectSchema = new Schema<ISubject>(
 );
 
 // Keep the note counter in sync automatically so the UI never has to recalculate it.
-SubjectSchema.pre('save', async function () {
+SubjectSchema.pre('save', function () {
   if (this.notes) {
     this.notesCount = this.notes.length;
   }

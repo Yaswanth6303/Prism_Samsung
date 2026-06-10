@@ -265,8 +265,8 @@ export function Activities() {
         <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6 mb-6">
           <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">Log Activity</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Select Activity</label>
+            <div role="group" aria-label="Select activity type">
+              <p className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Select Activity</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {activityOptions.map((option) => (
                   <button

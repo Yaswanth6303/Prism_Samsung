@@ -45,7 +45,7 @@ export function ProfileIdentityCard({ user }: ProfileIdentityCardProps) {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Avatar uploads are client-side file reads because the account image is stored as a data URL.
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {return;}
 
@@ -64,9 +64,14 @@ export function ProfileIdentityCard({ user }: ProfileIdentityCardProps) {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = reader.result as string;
-        await authClient.updateUser({ image: base64 });
-        toast.success("Avatar updated successfully");
-        setIsUploadingAvatar(false);
+        try {
+          await authClient.updateUser({ image: base64 });
+          toast.success("Avatar updated successfully");
+        } catch {
+          toast.error("Failed to update avatar");
+        } finally {
+          setIsUploadingAvatar(false);
+        }
       };
       reader.readAsDataURL(file);
     } catch {

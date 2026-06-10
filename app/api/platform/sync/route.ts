@@ -157,8 +157,9 @@ export async function POST(request: Request) {
       )
 
       // A fresh insert means this activity has never been counted before.
-      // @ts-ignore - depending on the driver version, upsertedCount may be exposed differently.
-      if (upsertResult && (upsertResult as any).upsertedCount > 0) {
+      // upsertedCount is exposed by all current Mongoose driver versions; the cast keeps us safe across minor type drift.
+      const upsertedCount = (upsertResult as { upsertedCount?: number } | null)?.upsertedCount ?? 0
+      if (upsertedCount > 0) {
         // The daily log is what powers streaks, so we keep it in step with the new activity.
         await DailyActivityLog.findOneAndUpdate(
           { userId: userId.toString(), date: dateStr },

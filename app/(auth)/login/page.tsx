@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LoaderIcon, Mail } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { loginSchema } from "@/app/schemas/auth";
 import { SocialAuthButtons } from "@/components/auth/social-auth";
@@ -16,14 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-
-
-
-
 import { getSignInErrorMessage } from "@/errors/auth";
 import { authClient } from "@/lib/auth/client";
 
-import { toast } from "sonner";
 
 import type z from "zod";
 

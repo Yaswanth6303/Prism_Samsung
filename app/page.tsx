@@ -91,19 +91,24 @@ function StarField() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      stars.forEach((s) => {
-        s.pulse += 0.012;
-        s.opacity = 0.3 + Math.sin(s.pulse) * 0.3;
+      for (let i = 0; i < stars.length; i++) {
+        const star = stars[i];
+        const nextPulse = star.pulse + 0.012;
+        const nextOpacity = 0.3 + Math.sin(nextPulse) * 0.3;
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(180,200,255,${s.opacity})`;
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180,200,255,${nextOpacity})`;
         ctx.fill();
-        s.y += s.speed;
-        if (s.y > canvas.height) {
-          s.y = 0;
-          s.x = Math.random() * canvas.width;
-        }
-      });
+        const nextY = star.y + star.speed;
+        const wrapped = nextY > canvas.height;
+        stars[i] = {
+          ...star,
+          pulse: nextPulse,
+          opacity: nextOpacity,
+          y: wrapped ? 0 : nextY,
+          x: wrapped ? Math.random() * canvas.width : star.x,
+        };
+      }
       animId = requestAnimationFrame(draw);
     };
     draw();

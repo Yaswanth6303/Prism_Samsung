@@ -48,12 +48,12 @@ export async function GET(request: Request) {
       .lean()
 
     // Group activity titles by day so the front end can render a compact tooltip per cell.
-    const activitiesByDate = activities.reduce<Record<string, string[]>>((acc, activity) => {
+    const activitiesByDate: Record<string, string[]> = {}
+    for (const activity of activities) {
       const date = new Date(activity.date).toISOString().slice(0, 10)
-      if (!acc[date]) {acc[date] = []}
-      acc[date].push(activity.title)
-      return acc
-    }, {})
+      const bucket = activitiesByDate[date] ?? (activitiesByDate[date] = [])
+      bucket.push(activity.title)
+    }
 
     // Merge counts and titles into one calendar-friendly payload.
     const heatmapData = logs.map((log) => ({

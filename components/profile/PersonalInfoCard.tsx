@@ -45,7 +45,7 @@ export function PersonalInfoCard({ user }: PersonalInfoCardProps) {
   }, []);
 
   useEffect(() => {
-    loadProfileData();
+    void loadProfileData();
   }, [loadProfileData]);
 
   useEffect(() => {

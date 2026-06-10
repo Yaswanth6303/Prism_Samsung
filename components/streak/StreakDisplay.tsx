@@ -85,7 +85,7 @@ export function StreakDisplay() {
           ActivitiesResponseSchema,
         )
         // ActivityEvent in @/types requires `details: string` (not optional), which the API guarantees.
-        setActivities(data.activities as ActivityEvent[])
+        setActivities(data.activities)
       } catch {
         setActivities([])
       } finally {

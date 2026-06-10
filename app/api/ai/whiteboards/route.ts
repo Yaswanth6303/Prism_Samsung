@@ -153,7 +153,7 @@ export async function DELETE(request: Request) {
         }
       }
       return true
-    }) as typeof subject.whiteboards
+    })
     await subject.save()
 
     return NextResponse.json({

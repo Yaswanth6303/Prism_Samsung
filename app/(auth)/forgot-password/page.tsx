@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { getForgotPasswordErrorMessage } from "@/errors/auth";
+import type { AuthError } from "@/types";
 
 
 
@@ -53,7 +54,7 @@ export default function ForgotPasswordPage() {
         setIsSubmitted(true);
         toast.success("Reset link sent! Check your email.");
       } else {
-        const errorData = await res.json().catch(() => null);
+        const errorData = (await res.json().catch(() => null)) as { error?: AuthError } | null;
         const message = errorData?.error
           ? getForgotPasswordErrorMessage(errorData.error)
           : "Something went wrong. Please try again.";

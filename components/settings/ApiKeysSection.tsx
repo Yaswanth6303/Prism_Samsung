@@ -71,7 +71,7 @@ export function ApiKeysSection() {
   }, []);
 
   useEffect(() => {
-    loadKeys();
+    void loadKeys();
   }, [loadKeys]);
 
   // Save only the fields the user touched so empty inputs do not wipe stored secrets.

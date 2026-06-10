@@ -133,7 +133,7 @@ export async function DELETE(request: Request) {
     }
 
     const originalCount = subject.notes.length
-    subject.notes = subject.notes.filter((note) => note._id?.toString() !== noteId) as typeof subject.notes
+    subject.notes = subject.notes.filter((note) => note._id?.toString() !== noteId)
     if (subject.notes.length === originalCount) {
       return NextResponse.json({ ok: false, error: 'note not found' }, { status: 404 })
     }

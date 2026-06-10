@@ -15,17 +15,18 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { ActivityHeatmap } from "../activity/ActivityHeatmap";
-import { GithubIcon } from "../icons/GithubIcon";
 
 const StreakDisplay = dynamic(() => import('../streak/StreakDisplay').then(m => ({ default: m.StreakDisplay })), { ssr: false })
-import { ActivityCard } from "../activity/ActivityCard";
 
 // import { Leaderboard } from '../leaderboard/Leaderboard'
 // import { ClawMind } from '../study/ClawMind'
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api/fetch";
 import { ActivitiesResponseSchema, type ActivityItem, StatsResponseSchema } from "@/types/api";
+
+import { ActivityCard } from "../activity/ActivityCard";
+import { ActivityHeatmap } from "../activity/ActivityHeatmap";
+import { GithubIcon } from "../icons/GithubIcon";
 
 const statSurface =
   "rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm ring-1 ring-foreground/10";

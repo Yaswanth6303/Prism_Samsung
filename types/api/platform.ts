@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { OkLiteral } from "./_shared";
 
 export const PlatformProviderSchema = z.enum(["github", "leetcode"]);
 export type PlatformProvider = z.infer<typeof PlatformProviderSchema>;

@@ -229,6 +229,24 @@ const config = [
       "no-undef": "off",
     },
   },
+
+  // ── shadcn-generated UI primitives ────────────────────────────────────────
+  // Files under components/ui/* are produced by `npx shadcn add` and get re-written on every update.
+  // Hand-edits get clobbered, so we lighten the rules that misfire on shadcn's intentional patterns
+  // (chart's CSS-injection via dangerouslySetInnerHTML, sidebar's mutable tooltip arg, etc.).
+  // All semantic checks (floating promises, misused promises) stay on.
+  {
+    files: ["components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react/no-danger": "off",
+      "no-param-reassign": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "jsx-a11y/anchor-has-content": "off",
+      "jsx-a11y/heading-has-content": "off",
+      eqeqeq: "off",
+    },
+  },
 ];
 
 export default config;

@@ -68,10 +68,11 @@ export function SubjectsPanel({ controller }: SubjectsPanelProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {subjects.map((subject) => (
-          <div
+          <button
+            type="button"
             key={subject.id}
             onClick={() => goToSubject(subject)}
-            className="bg-card rounded-2xl p-4 sm:p-5 border border-border hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/5 transition-all cursor-pointer group"
+            className="text-left bg-card rounded-2xl p-4 sm:p-5 border border-border hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/5 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-4">
               <div
@@ -85,7 +86,7 @@ export function SubjectsPanel({ controller }: SubjectsPanelProps) {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-blue-500 transition-colors" />
             </div>
-          </div>
+          </button>
         ))}
         {subjects.length === 0 && (
           <div className="sm:col-span-2 lg:col-span-3 bg-card rounded-2xl p-8 border border-dashed border-border text-center text-muted-foreground">

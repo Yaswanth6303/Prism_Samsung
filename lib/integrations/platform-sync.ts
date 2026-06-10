@@ -237,12 +237,15 @@ export async function fetchLeetCodeSnapshot(username: string, authToken?: string
   if (user.userCalendar?.submissionCalendar) {
     try {
       // LeetCode stores the calendar as JSON keyed by Unix timestamps, so we convert it to YYYY-MM-DD.
-      const cal = JSON.parse(user.userCalendar.submissionCalendar)
+      const parsed: unknown = JSON.parse(user.userCalendar.submissionCalendar)
+      const cal = parsed as Record<string, number>
       for (const [timestamp, count] of Object.entries(cal)) {
         const date = new Date(parseInt(timestamp) * 1000).toISOString().split('T')[0]
-        history[date] = (history[date] || 0) + (count as number)
+        history[date] = (history[date] || 0) + Number(count)
       }
-    } catch (e) {}
+    } catch {
+      // Calendar JSON occasionally arrives malformed from LeetCode; fall through and return what we have.
+    }
   }
 
   // The caller only needs this clean summary object, not the raw LeetCode payload.

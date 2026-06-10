@@ -72,10 +72,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${quicksand.variable} ${spaceGrotesk.variable} ${lora.variable} ${playfairDisplay.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Inline boot restores the saved color theme before the page paints, so the first frame already matches the user preference. */}
+        {/* Inline boot restores the saved color theme before the page paints, so the first frame already matches the user preference.
+            Inline string is mandatory here — React state isn't available before hydration; no user input flows into the script. */}
         <script
           id="color-theme-boot"
           suppressHydrationWarning
+          // eslint-disable-next-line react/no-danger -- known-safe constant script, no user input
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var k=${JSON.stringify(COLOR_THEME_STORAGE_KEY)};var v=localStorage.getItem(k);if(v&&v!=="default")document.documentElement.setAttribute("data-color-theme",v)}catch(e){}})()`,
           }}
