@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -102,7 +103,7 @@ export function Dashboard() {
         <div className="bg-linear-to-r from-indigo-600 to-purple-600 rounded-xl p-4 sm:p-6 text-white hover:shadow-lg transition-shadow">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-white/20 rounded-xl flex-shrink-0">
+              <div className="p-2 sm:p-3 bg-white/20 rounded-xl shrink-0">
                 <BrainCircuit className="w-6 sm:w-8 h-6 sm:h-8" />
               </div>
               <div>
@@ -112,7 +113,7 @@ export function Dashboard() {
                 </p>
               </div>
             </div>
-            <ArrowRight className="w-5 sm:w-6 h-5 sm:h-6 flex-shrink-0" />
+            <ArrowRight className="w-5 sm:w-6 h-5 sm:h-6 shrink-0" />
           </div>
         </div>
       </Link>
@@ -121,7 +122,7 @@ export function Dashboard() {
       <div id="tour-dashboard-stats" className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className={statSurface}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400 flex-shrink-0">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/15 text-blue-600 dark:bg-blue-500/25 dark:text-blue-400 shrink-0">
               <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
             <div className="min-w-0">
@@ -133,8 +134,8 @@ export function Dashboard() {
 
         <div className={statSurface}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/15 text-orange-600 dark:bg-orange-500/25 dark:text-orange-400 flex-shrink-0">
-              <img src="/fire.png?v=2" alt="Fire" className="w-5 sm:w-6 h-5 sm:h-6 object-contain drop-shadow-md" />
+            <div className="p-1.5 sm:p-2 rounded-lg bg-orange-500/15 text-orange-600 dark:bg-orange-500/25 dark:text-orange-400 shrink-0">
+              <Image src="/fire.png?v=2" alt="Fire" width={24} height={24} className="w-5 sm:w-6 h-5 sm:h-6 object-contain drop-shadow-md" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] sm:text-sm text-muted-foreground">Current Streak</p>
@@ -145,7 +146,7 @@ export function Dashboard() {
 
         <div className={statSurface}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400 flex-shrink-0">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/15 text-purple-600 dark:bg-purple-500/25 dark:text-purple-400 shrink-0">
               <Trophy className="w-4 sm:w-5 h-4 sm:h-5" />
             </div>
             <div className="min-w-0">
@@ -157,8 +158,8 @@ export function Dashboard() {
 
         <div className={statSurface}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400 flex-shrink-0">
-              <img src="/fire.png?v=2" alt="Fire" className="w-5 sm:w-6 h-5 sm:h-6 object-contain drop-shadow-md" />
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400 shrink-0">
+              <Image src="/fire.png?v=2" alt="Fire" width={24} height={24} className="w-5 sm:w-6 h-5 sm:h-6 object-contain drop-shadow-md" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] sm:text-sm text-muted-foreground">Best Streak</p>

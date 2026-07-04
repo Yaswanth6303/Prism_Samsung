@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useCallback } from "react";
 
+import { usePathname, useRouter } from "next/navigation";
+
 import { driver } from "driver.js";
 
 import "driver.js/dist/driver.css";
-import { usePathname, useRouter } from "next/navigation";
 
 // The onboarding tour teaches the app in small, page-specific steps instead of dumping everything at once.
 export const TOUR_KEY = "tour_v1";   // bump to reset for all users

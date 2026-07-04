@@ -65,4 +65,4 @@ const UserSchema = new Schema<IUser>(
   // The leaderboard query sorts by points first, then creation time, so this index keeps that path fast.
 UserSchema.index({ totalPoints: -1, createdAt: 1 });
 
-export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+export const User: Model<IUser> = (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>('User', UserSchema);

@@ -66,7 +66,7 @@ function serializeUser(user: ProfileUser) {
 }
 
 // GET returns the current user's profile summary for the settings and dashboard screens.
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
@@ -89,7 +89,7 @@ export async function PATCH(request: Request) {
   }
 
   // Validate before touching the database so bad input fails fast and cleanly.
-  const body = await request.json()
+  const body: unknown = await request.json()
   const parsed = ProfileBody.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: parsed.error.format() }, { status: 400 })

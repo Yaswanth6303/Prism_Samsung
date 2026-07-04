@@ -22,7 +22,7 @@ export function QuizPanel({ controller }: QuizPanelProps) {
         <div className="space-y-5">
           {activeQuiz.map((question, index) => (
             <div
-              key={`${index}-${question.question}`}
+              key={question.question}
               className="border border-border rounded-lg p-4"
             >
               <p className="font-medium text-foreground mb-3">

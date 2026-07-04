@@ -6,7 +6,7 @@ import { User } from '@/lib/db/models/User'
 import connectToDB from '@/lib/db/mongoose'
 
 // This endpoint is a lightweight shortcut for showing the signed-in user's own leaderboard position.
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   
   if (!session?.user?.id) {
@@ -41,8 +41,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ ok: true, userEntry })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('My Rank Error:', error)
-    return NextResponse.json({ ok: false, error: error?.message || 'Server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : 'Server error' }, { status: 500 })
   }
 }

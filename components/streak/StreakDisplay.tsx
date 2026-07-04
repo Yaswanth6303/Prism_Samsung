@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import Image from 'next/image'
+
 import { Calendar as CalendarIcon, Loader2, Dumbbell, Route, Code, SearchCode, BookOpen, Presentation } from "lucide-react";
 
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar"
@@ -28,14 +30,13 @@ function getActivityIcon(type: string) {
     case 'leetcode': return <SearchCode className="w-4 h-4" />
     case 'study': return <BookOpen className="w-4 h-4" />
     case 'project': return <Presentation className="w-4 h-4" />
-    default: return <img src="/fire.png?v=2" alt="Activity" className="w-4 h-4 object-contain" />
+    default: return <Image src="/fire.png?v=2" alt="Activity" width={16} height={16} className="w-4 h-4 object-contain" />
   }
 }
 
 
 export function StreakDisplay() {
   const [currentStreak, setCurrentStreak] = useState(0)
-  const [longestStreak, setLongestStreak] = useState(0)
   const [activeDates, setActiveDates] = useState<Set<string>>(new Set())
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -48,7 +49,6 @@ export function StreakDisplay() {
       try {
         const stats = await apiFetch('/api/stats', StatsResponseSchema)
         setCurrentStreak(stats.stats.currentStreak ?? 0)
-        setLongestStreak(stats.stats.longestStreak ?? 0)
       } catch {
         // silently keep stale streak
       }
@@ -100,7 +100,7 @@ export function StreakDisplay() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           {/* The fire icon makes the streak state obvious at a glance. */}
-          <img src="/fire.png?v=2" alt="Streak" className={`w-6 h-6 object-contain ${currentStreak > 0 ? '' : 'opacity-40 grayscale'}`} />
+          <Image src="/fire.png?v=2" alt="Streak" width={24} height={24} className={`w-6 h-6 object-contain ${currentStreak > 0 ? '' : 'opacity-40 grayscale'}`} />
           <h2 className="text-lg font-semibold text-foreground">Activity Calendar</h2>
         </div>
         <div className="text-right">
@@ -133,18 +133,19 @@ export function StreakDisplay() {
 
                 return (
                   <div className="relative w-full h-full flex items-center justify-center group/daywrapper">
-                    {hasActivity ? (
+                    {hasActivity && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none transition-transform group-hover/daywrapper:scale-110">
-                        <img 
+                        <Image 
                           src="/fire.png?v=2" 
                           alt="" 
+                          width={44}
+                          height={44}
                           className="w-9 h-9 sm:w-11 sm:h-11 object-contain drop-shadow-md" 
                         />
                       </div>
-                    ) : (
-                      isPastOrToday ? (
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50 absolute bottom-1.5 left-1/2 -translate-x-1/2 pointer-events-none" />
-                      ) : null
+                    )}
+                    {!hasActivity && isPastOrToday && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50 absolute bottom-1.5 left-1/2 -translate-x-1/2 pointer-events-none" />
                     )}
                     <CalendarDayButton 
                       {...props} 
@@ -169,11 +170,12 @@ export function StreakDisplay() {
           </h3>
 
           <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-            {loadingActivities ? (
+            {loadingActivities && (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
-            ) : activities.length > 0 ? (
+            )}
+            {!loadingActivities && activities.length > 0 && (
               activities.map((activity) => (
                 <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30">
                   <div className="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-md">
@@ -188,7 +190,8 @@ export function StreakDisplay() {
                   </div>
                 </div>
               ))
-            ) : (
+            )}
+            {!loadingActivities && activities.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full py-10 text-center text-muted-foreground">
                 <CalendarIcon className="w-8 h-8 mb-2 opacity-20" />
                 <p className="text-sm">No activities logged on this date.</p>

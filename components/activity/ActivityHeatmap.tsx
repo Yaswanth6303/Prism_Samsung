@@ -181,7 +181,7 @@ export function ActivityHeatmap() {
 
             {/* Weeks (columns) - render full grid; weeks is already aligned starting Sundays */}
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="flex flex-col" style={{ gap: GAP }}>
+              <div key={`week-${week[0]?.date || weekIndex}`} className="flex flex-col" style={{ gap: GAP }}>
                 {week.map((day) => (
                   day.count === -1 ? (
                     <div
@@ -205,21 +205,27 @@ export function ActivityHeatmap() {
                             {day.count} {day.count === 1 ? 'activity' : 'activities'}
                           </div>
                           <div className="space-y-1">
-                            {(activityCache[day.date]?.status === 'loaded' && activityCache[day.date].activities.length > 0)
-                              ? activityCache[day.date].activities.map((activity, index) => (
-                                <div key={`${day.date}-${index}`} className="text-xs leading-snug">
-                                  {activity}
-                                </div>
-                              ))
-                              : activityCache[day.date]?.status === 'loading'
-                                ? <div className="text-xs leading-snug text-muted-foreground">Loading activities...</div>
-                                : day.activities && day.activities.length > 0
-                                  ? day.activities.map((activity, index) => (
-                                      <div key={`${day.date}-${index}`} className="text-xs leading-snug">
-                                        {activity}
-                                      </div>
-                                    ))
-                                  : <div className="text-xs leading-snug text-muted-foreground">No activities recorded.</div>}
+                            {(() => {
+                              const cacheEntry = activityCache[day.date];
+                              if (cacheEntry?.status === 'loaded' && cacheEntry.activities.length > 0) {
+                                return cacheEntry.activities.map((activity) => (
+                                  <div key={activity} className="text-xs leading-snug">
+                                    {activity}
+                                  </div>
+                                ));
+                              }
+                              if (cacheEntry?.status === 'loading') {
+                                return <div className="text-xs leading-snug text-muted-foreground">Loading activities...</div>;
+                              }
+                              if (day.activities && day.activities.length > 0) {
+                                return day.activities.map((activity) => (
+                                  <div key={activity} className="text-xs leading-snug">
+                                    {activity}
+                                  </div>
+                                ));
+                              }
+                              return <div className="text-xs leading-snug text-muted-foreground">No activities recorded.</div>;
+                            })()}
                           </div>
                         </div>
                       </TooltipContent>

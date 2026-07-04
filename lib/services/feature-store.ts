@@ -114,7 +114,9 @@ export function ensureUser(userId: string) {
       bestStreak: 0,
     })
   }
-  return state.users.get(userId)!
+  const user = state.users.get(userId)
+  if (!user) { throw new Error(`User not found: ${userId}`) }
+  return user
 }
 
 function upsertDailyLog(userId: string, day = dateKey()) {
@@ -152,7 +154,9 @@ export function addManualActivity(input: {
 }) {
   const user = ensureUser(input.userId)
   const value = input.value ?? 1
-  const eventType = input.type === 'gym' ? 'gym_session' : input.type === 'jog' ? 'jog_per_km' : 'custom'
+  let eventType: Parameters<typeof pointsFor>[0] = 'custom'
+  if (input.type === 'gym') { eventType = 'gym_session' }
+  else if (input.type === 'jog') { eventType = 'jog_per_km' }
   const pointsAwarded = pointsFor(eventType, value)
   const day = input.date || dateKey()
 

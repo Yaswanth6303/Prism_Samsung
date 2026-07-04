@@ -23,4 +23,4 @@ const DailyActivityLogSchema = new Schema<IDailyActivityLog>(
 DailyActivityLogSchema.index({ userId: 1, date: 1 }, { unique: true })
 
 export const DailyActivityLog: Model<IDailyActivityLog> =
-  mongoose.models.DailyActivityLog || mongoose.model<IDailyActivityLog>('DailyActivityLog', DailyActivityLogSchema)
+  (mongoose.models.DailyActivityLog as Model<IDailyActivityLog>) || mongoose.model<IDailyActivityLog>('DailyActivityLog', DailyActivityLogSchema)

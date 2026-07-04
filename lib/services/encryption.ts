@@ -1,14 +1,14 @@
 import crypto from 'crypto'
 
+import { env } from '@/lib/env'
+
 // AES keeps stored tokens reversible only with the shared server secret.
 const ALGORITHM = 'aes-256-cbc'
 
 // Derive a fixed-length key from the environment secret so encryption stays stable across restarts.
 function getKey() {
-  const secret = process.env.ENCRYPTION_SECRET
-  if (!secret) {throw new Error('ENCRYPTION_SECRET must be set')}
   // SHA-256 gives us a 32-byte key that fits the cipher requirements.
-  return crypto.createHash('sha256').update(secret).digest()
+  return crypto.createHash('sha256').update(env.ENCRYPTION_SECRET).digest()
 }
 
 // Encrypt user secrets before they ever hit the database.
@@ -38,7 +38,7 @@ export function decrypt(payload: string | null | undefined): string {
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])
     return decrypted.toString('utf8')
-  } catch (error) {
+  } catch {
     // Bad input or a rotated secret should fail softly here and return no secret.
     console.error('Decryption failed')
     return ''

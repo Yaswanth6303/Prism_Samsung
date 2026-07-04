@@ -124,9 +124,10 @@ export function NavBar() {
           <ToggleColorTheme />
         </div>
 
-        {isPending ? (
+        {isPending && (
           <LoaderIcon className="size-4 animate-spin text-muted-foreground" />
-        ) : session ? (
+        )}
+        {!isPending && session && (
           <>
             {/* The desktop profile menu groups account actions in one place. */}
             <div className="hidden lg:flex items-center">
@@ -272,7 +273,8 @@ export function NavBar() {
               </SheetContent>
             </Sheet>
           </>
-        ) : (
+        )}
+        {!isPending && !session && (
           <>
             {/* Logged-out visitors see signup and login as the primary calls to action. */}
             <div className="hidden lg:flex items-center gap-4">

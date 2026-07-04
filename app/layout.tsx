@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 
 import {
   Geist,
@@ -10,6 +9,7 @@ import {
   Playfair_Display,
 } from "next/font/google";
 
+
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
@@ -17,6 +17,8 @@ import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { COLOR_THEME_STORAGE_KEY } from "@/lib/theme/color-theme";
+
+import type { Metadata } from "next";
 
 // Root layout sets the shared fonts, providers, and toaster used by every page.
 const geistSans = Geist({

@@ -190,7 +190,7 @@ export function PersonalInfoCard({ user }: PersonalInfoCardProps) {
 
           <div className="space-y-2">
             <Label className="text-muted-foreground">GitHub Username</Label>
-            {isEditing ? (
+            {isEditing && (
               <Input
                 ref={githubInputRef}
                 value={githubUsername}
@@ -198,9 +198,11 @@ export function PersonalInfoCard({ user }: PersonalInfoCardProps) {
                 placeholder="your-github-username"
                 className="h-10"
               />
-            ) : githubUsername ? (
+            )}
+            {!isEditing && githubUsername && (
               <p className="text-sm font-medium">{githubUsername}</p>
-            ) : (
+            )}
+            {!isEditing && !githubUsername && (
               <Button
                 variant="outline"
                 size="sm"
@@ -215,7 +217,7 @@ export function PersonalInfoCard({ user }: PersonalInfoCardProps) {
 
           <div className="space-y-2">
             <Label className="text-muted-foreground">LeetCode Username</Label>
-            {isEditing ? (
+            {isEditing && (
               <Input
                 ref={leetcodeInputRef}
                 value={leetcodeUsername}
@@ -223,9 +225,11 @@ export function PersonalInfoCard({ user }: PersonalInfoCardProps) {
                 placeholder="your-leetcode-username"
                 className="h-10"
               />
-            ) : leetcodeUsername ? (
+            )}
+            {!isEditing && leetcodeUsername && (
               <p className="text-sm font-medium">{leetcodeUsername}</p>
-            ) : (
+            )}
+            {!isEditing && !leetcodeUsername && (
               <Button
                 variant="outline"
                 size="sm"

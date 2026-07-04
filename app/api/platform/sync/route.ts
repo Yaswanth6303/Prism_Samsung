@@ -14,7 +14,7 @@ import { recalculateAllStreaks } from '@/lib/services/streak'
 
 // This endpoint pulls the user's external activity into our local database.
 // Keeping the flow inside one route makes sync predictable and easy to audit.
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   // Only signed-in users are allowed to trigger a sync.
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) {
@@ -41,14 +41,14 @@ export async function POST(request: Request) {
     try {
       // Better Auth keeps linked accounts in a separate collection, so we check there first.
       const accountsCollection = db.collection('account')
-      const githubAccount = await accountsCollection.findOne({ userId: user._id.toString(), provider: 'github' })
+      const githubAccount = (await accountsCollection.findOne({ userId: user._id.toString(), provider: 'github' })) as { accountId?: string } | null
       if (githubAccount?.accountId) {
         // For GitHub, accountId is the username we want to sync with.
         githubUsername = githubAccount.accountId
         // Save it now so future syncs do not need to rediscover it.
         user.githubUsername = githubUsername
       }
-    } catch (e) {
+    } catch {
       // If account lookup fails, we still let the rest of the sync continue.
     }
   }
@@ -59,11 +59,6 @@ export async function POST(request: Request) {
       // Decrypt the PAT only when we actually need it, so we keep secrets out of memory for as short a time as possible.
       const pat = user.githubPat ? decrypt(user.githubPat) : undefined
       snapshot.github = await fetchGitHubSnapshot(githubUsername, pat)
-      console.log(`[Sync] GitHub: ${githubUsername}`, {
-        repos: snapshot.github.publicRepos,
-        followers: snapshot.github.followers,
-        historyDays: Object.keys(snapshot.github.history).length,
-      })
       results.push({
         provider: 'github',
         ok: true,
@@ -83,10 +78,6 @@ export async function POST(request: Request) {
       // The optional token unlocks private history; without it we only read public data.
       const leetToken = user.leetcodePat ? decrypt(user.leetcodePat) : undefined
       snapshot.leetcode = await fetchLeetCodeSnapshot(user.leetcodeUsername, leetToken)
-      console.log(`[Sync] LeetCode: ${user.leetcodeUsername}`, {
-        totalSolved: snapshot.leetcode.totalSolved,
-        historyDays: Object.keys(snapshot.leetcode.history).length,
-      })
       results.push({
         provider: 'leetcode',
         ok: true,
@@ -125,7 +116,6 @@ export async function POST(request: Request) {
     details: string
   ) {
     // Each day is handled independently so retries can safely update one record at a time.
-    console.log(`[processHistory] Starting for ${type}, total days: ${Object.keys(history).length}`)
     for (const [dateStr, count] of Object.entries(history)) {
       if (count <= 0) {continue}
 

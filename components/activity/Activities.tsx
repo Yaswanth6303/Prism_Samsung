@@ -7,7 +7,7 @@ import { Plus, Code2, RefreshCcw, X } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch, ApiError } from "@/lib/api/fetch";
-import {type Activity, type Profile, type ActivityOption} from "@/types";
+import { type Activity, type Profile, type ActivityOption } from "@/types";
 import {
   ActivitiesResponseSchema,
   ActivityCreateResponseSchema,
@@ -48,21 +48,21 @@ import { GithubIcon } from "../icons/GithubIcon";
 // }
 
 const activityOptions: ActivityOption[] = [
-  { label: 'Gym Session', type: 'gym', defaultValue: 1, unit: 'session' },
-  { label: 'Jogging', type: 'jogging', defaultValue: 3, unit: 'km' },
-  { label: 'Study Session', type: 'study', defaultValue: 30, unit: 'points' },
-  { label: 'Project Work', type: 'project', defaultValue: 50, unit: 'points' },
-]
+  { label: "Gym Session", type: "gym", defaultValue: 1, unit: "session" },
+  { label: "Jogging", type: "jogging", defaultValue: 3, unit: "km" },
+  { label: "Study Session", type: "study", defaultValue: 30, unit: "points" },
+  { label: "Project Work", type: "project", defaultValue: 50, unit: "points" },
+];
 
 const emptyProfile: Profile = {
-  githubUsername: '',
-  leetcodeUsername: '',
+  githubUsername: "",
+  leetcodeUsername: "",
   githubContributions: 0,
   githubPublicRepos: 0,
   githubFollowers: 0,
   leetcodeSolved: 0,
   lastPlatformSyncAt: null,
-}
+};
 
 // The activities page is the user's control panel for manual logs and platform sync.
 export function Activities() {
@@ -70,10 +70,10 @@ export function Activities() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [profile, setProfile] = useState<Profile>(emptyProfile);
   const [selectedOption, setSelectedOption] = useState<ActivityOption>(activityOptions[0]);
-  const [customTitle, setCustomTitle] = useState('');
+  const [customTitle, setCustomTitle] = useState("");
   const [value, setValue] = useState(String(activityOptions[0].defaultValue));
-  const [details, setDetails] = useState('');
-  const [status, setStatus] = useState('');
+  const [details, setDetails] = useState("");
+  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -81,7 +81,7 @@ export function Activities() {
   // Manual logs and live profile data are loaded together so the page always reflects the latest state.
   const loadActivities = useCallback(async () => {
     try {
-      const data = await apiFetch('/api/activities?limit=50', ActivitiesResponseSchema);
+      const data = await apiFetch("/api/activities?limit=50", ActivitiesResponseSchema);
       setActivities(data.activities);
     } catch {
       // silently keep stale state
@@ -91,10 +91,10 @@ export function Activities() {
   // The profile snapshot tells the page whether GitHub or LeetCode can be synced automatically.
   const loadProfile = useCallback(async () => {
     try {
-      const data = await apiFetch('/api/profile', ProfileResponseSchema);
+      const data = await apiFetch("/api/profile", ProfileResponseSchema);
       setProfile({
-        githubUsername: data.profile.githubUsername || '',
-        leetcodeUsername: data.profile.leetcodeUsername || '',
+        githubUsername: data.profile.githubUsername || "",
+        leetcodeUsername: data.profile.leetcodeUsername || "",
         githubContributions: data.profile.githubContributions || 0,
         githubPublicRepos: data.profile.githubPublicRepos || 0,
         githubFollowers: data.profile.githubFollowers || 0,
@@ -127,8 +127,7 @@ export function Activities() {
   // Auto-sync quietly refreshes connected platform data on a timer without requiring a manual click.
   const autoSyncQuery = useQuery<PlatformSyncResponse>({
     queryKey: ["platform-sync-auto", profile.githubUsername, profile.leetcodeUsername],
-    queryFn: () =>
-      apiFetch('/api/platform/sync', PlatformSyncResponseSchema, { method: 'POST' }),
+    queryFn: () => apiFetch("/api/platform/sync", PlatformSyncResponseSchema, { method: "POST" }),
     enabled: hasConnectedPlatform,
     refetchInterval: 5 * 60 * 1000,
     refetchIntervalInBackground: false,
@@ -138,8 +137,10 @@ export function Activities() {
 
   useEffect(() => {
     // A successful platform sync should refresh the screen and emit the shared activity event.
-    if (!autoSyncQuery.data) {return;}
-    window.dispatchEvent(new Event('activity:logged'));
+    if (!autoSyncQuery.data) {
+      return;
+    }
+    window.dispatchEvent(new Event("activity:logged"));
     void loadPageData();
   }, [autoSyncQuery.data, loadPageData]);
 
@@ -155,22 +156,24 @@ export function Activities() {
   function chooseOption(option: ActivityOption) {
     setSelectedOption(option);
     setValue(String(option.defaultValue));
-    setCustomTitle('');
+    setCustomTitle("");
   }
 
   // The manual activity form converts a small user input into a durable logged event.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const numericValue = Number(value);
-    if (!selectedOption || !Number.isFinite(numericValue) || numericValue <= 0) {return;}
+    if (!selectedOption || !Number.isFinite(numericValue) || numericValue <= 0) {
+      return;
+    }
 
     setLoading(true);
-  // The sync button gives the user an explicit way to pull fresh GitHub and LeetCode data on demand.
-    setStatus('');
+    // The sync button gives the user an explicit way to pull fresh GitHub and LeetCode data on demand.
+    setStatus("");
     try {
-      const data = await apiFetch('/api/activities', ActivityCreateResponseSchema, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+      const data = await apiFetch("/api/activities", ActivityCreateResponseSchema, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           type: selectedOption.type,
           title: customTitle.trim() || selectedOption.label,
@@ -179,42 +182,45 @@ export function Activities() {
         }),
       });
 
-      setDetails('');
-      setCustomTitle('');
+      setDetails("");
+      setCustomTitle("");
       setValue(String(selectedOption.defaultValue));
       setShowAddForm(false);
       setStatus(`Activity logged for ${data.pointsAwarded} points`);
-      window.dispatchEvent(new Event('activity:logged'));
+      window.dispatchEvent(new Event("activity:logged"));
       await loadPageData();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Could not log activity');
+      setStatus(error instanceof Error ? error.message : "Could not log activity");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   async function syncPlatforms() {
     setSyncing(true);
-    setStatus('');
+    setStatus("");
     try {
-      const data = await apiFetch('/api/platform/sync', PlatformSyncResponseSchema, {
-        method: 'POST',
+      const data = await apiFetch("/api/platform/sync", PlatformSyncResponseSchema, {
+        method: "POST",
       });
       // Sync route returns ok=false when both providers fail; surface that as an error message.
       if (!data.ok) {
-        throw new Error(data.errors.join(', ') || 'Could not sync platforms');
+        throw new Error(data.errors.join(", ") || "Could not sync platforms");
       }
-      const details = data.results.length > 0
-        ? data.results.map((result) => result.message).join(' | ')
-        : 'Synced latest platform data';
-      setStatus(data.pointsAwarded > 0 ? `${details}. Awarded ${data.pointsAwarded} points.` : details);
-      window.dispatchEvent(new Event('activity:logged'));
+      const details =
+        data.results.length > 0
+          ? data.results.map((result) => result.message).join(" | ")
+          : "Synced latest platform data";
+      setStatus(
+        data.pointsAwarded > 0 ? `${details}. Awarded ${data.pointsAwarded} points.` : details,
+      );
+      window.dispatchEvent(new Event("activity:logged"));
       await loadPageData();
     } catch (error) {
       const message =
         error instanceof ApiError || error instanceof Error
           ? error.message
-          : 'Could not sync platforms';
+          : "Could not sync platforms";
       setStatus(message);
     } finally {
       setSyncing(false);
@@ -266,16 +272,19 @@ export function Activities() {
           <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">Log Activity</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div role="group" aria-label="Select activity type">
-              <p className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Select Activity</p>
+              <p className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">
+                Select Activity
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {activityOptions.map((option) => (
                   <button
                     key={option.label}
                     type="button"
                     onClick={() => chooseOption(option)}
-                    className={`p-2 sm:p-3 rounded-lg border-2 text-xs sm:text-sm transition-colors ${selectedOption.label === option.label
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'border-border hover:border-muted-foreground/50 text-foreground/80'
+                    className={`p-2 sm:p-3 rounded-lg border-2 text-xs sm:text-sm transition-colors ${
+                      selectedOption.label === option.label
+                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                        : "border-border hover:border-muted-foreground/50 text-foreground/80"
                     }`}
                   >
                     {option.label}
@@ -286,7 +295,9 @@ export function Activities() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block">
-                <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Title</span>
+                <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">
+                  Title
+                </span>
                 <input
                   type="text"
                   value={customTitle}
@@ -296,7 +307,9 @@ export function Activities() {
                 />
               </label>
               <label className="block">
-                <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Value</span>
+                <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">
+                  Value
+                </span>
                 <div className="flex">
                   <input
                     type="number"
@@ -306,13 +319,17 @@ export function Activities() {
                     className="w-full px-3 py-2 text-sm border border-border rounded-l-lg bg-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
-                  <span className="px-2 sm:px-3 py-2 border border-l-0 border-border rounded-r-lg bg-muted text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{selectedOption.unit}</span>
+                  <span className="px-2 sm:px-3 py-2 border border-l-0 border-border rounded-r-lg bg-muted text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                    {selectedOption.unit}
+                  </span>
                 </div>
               </label>
             </div>
 
             <label className="block">
-              <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">Details</span>
+              <span className="block text-xs sm:text-sm font-medium text-foreground/80 mb-2">
+                Details
+              </span>
               <input
                 type="text"
                 value={details}
@@ -327,7 +344,7 @@ export function Activities() {
               disabled={loading}
               className="w-full px-4 py-2 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Logging...' : 'Log Activity'}
+              {loading ? "Logging..." : "Log Activity"}
             </button>
           </form>
         </div>
@@ -336,13 +353,15 @@ export function Activities() {
       {/* Connected platforms are grouped here because they explain where automated points come from. */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground">Connected Platforms</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            Connected Platforms
+          </h2>
           <button
             onClick={syncPlatforms}
             disabled={syncing}
             className="inline-flex items-center justify-center gap-2 px-3 py-2 border border-border text-foreground/80 text-sm rounded-lg hover:bg-muted disabled:opacity-50 w-full sm:w-auto"
           >
-            <RefreshCcw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            <RefreshCcw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
             Sync
           </button>
         </div>
@@ -352,11 +371,15 @@ export function Activities() {
               <GithubIcon className="w-5 sm:w-6 h-5 sm:h-6 text-muted-foreground shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm sm:text-base font-medium text-foreground">GitHub</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">{githubConnected ? `${profile.githubUsername}` : 'Add username in Profile'}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                  {githubConnected ? `${profile.githubUsername}` : "Add username in Profile"}
+                </p>
               </div>
             </div>
-            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap shrink-0 ${githubConnected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
-              {githubConnected ? 'Connected' : 'Not set'}
+            <span
+              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap shrink-0 ${githubConnected ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-muted text-muted-foreground"}`}
+            >
+              {githubConnected ? "Connected" : "Not set"}
             </span>
           </div>
 
@@ -365,20 +388,30 @@ export function Activities() {
               <Code2 className="w-5 sm:w-6 h-5 sm:h-6 text-muted-foreground shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm sm:text-base font-medium text-foreground">LeetCode</p>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">{leetcodeConnected ? `${profile.leetcodeUsername}` : 'Add username in Profile'}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                  {leetcodeConnected ? `${profile.leetcodeUsername}` : "Add username in Profile"}
+                </p>
               </div>
             </div>
-            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap shrink-0 ${leetcodeConnected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
-              {leetcodeConnected ? 'Connected' : 'Not set'}
+            <span
+              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-full whitespace-nowrap shrink-0 ${leetcodeConnected ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-muted text-muted-foreground"}`}
+            >
+              {leetcodeConnected ? "Connected" : "Not set"}
             </span>
           </div>
         </div>
-        {profile.lastPlatformSyncAt && <p className="text-[11px] sm:text-xs text-muted-foreground mt-3">Last synced {new Date(profile.lastPlatformSyncAt).toLocaleString()}</p>}
+        {profile.lastPlatformSyncAt && (
+          <p className="text-[11px] sm:text-xs text-muted-foreground mt-3">
+            Last synced {new Date(profile.lastPlatformSyncAt).toLocaleString()}
+          </p>
+        )}
       </div>
 
       {/* The history list closes the loop by showing everything the user has already logged. */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6">
-        <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">Activity History</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">
+          Activity History
+        </h2>
         <div className="space-y-3">
           {activities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />

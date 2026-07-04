@@ -20,7 +20,12 @@ function useTypewriter(words: string[], speed: number = 80, pause: number = 2000
 
   useEffect(() => {
     const word = words[wordIdx];
-    const delay = deleting ? speed / 2 : charIdx === word.length ? pause : speed;
+    let delay = speed;
+    if (deleting) {
+      delay = speed / 2;
+    } else if (charIdx === word.length) {
+      delay = pause;
+    }
 
     const timer = setTimeout(() => {
       if (!deleting && charIdx < word.length) {
@@ -42,24 +47,6 @@ function useTypewriter(words: string[], speed: number = 80, pause: number = 2000
   return display;
 }
 
-/* ─── Animated counter hook ──────────────────────── */
-// These counters animate only after the stats section is visible so the numbers feel intentional, not noisy.
-function useCounter(target: number, duration: number = 1800, start: boolean = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) {return;}
-    let startTime: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTime) {startTime = timestamp;}
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(ease * target));
-      if (progress < 1) {requestAnimationFrame(step);}
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return count;
-}
 
 /* ─── Particle canvas ─────────────────────────────── */
 // The star field is a lightweight canvas background that makes the landing page feel alive.
@@ -124,32 +111,7 @@ function StarField() {
   );
 }
 
-/* ─── Stats row ───────────────────────────────────── */
-// Each stat item is just a number plus label, kept separate so the animated counters stay reusable.
-function StatItem({
-  target,
-  suffix,
-  label,
-  started,
-}: {
-  target: number;
-  suffix: string;
-  label: string;
-  started: boolean;
-}) {
-  const count = useCounter(target, 1800, started);
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="text-3xl md:text-4xl font-black text-white tabular-nums">
-        {count.toLocaleString()}
-        {suffix}
-      </span>
-      <span className="text-xs md:text-sm text-zinc-500 font-medium tracking-widest uppercase">
-        {label}
-      </span>
-    </div>
-  );
-}
+
 
 /* ─── Feature card ────────────────────────────────── */
 // Feature cards reuse one visual treatment so the landing page can scale without copy-pasting card markup.
@@ -159,7 +121,7 @@ function FeatureCard({
   desc,
   accent,
 }: {
-  icon: any;
+  icon: React.ElementType;
   title: string;
   desc: string;
   accent: string;
@@ -200,7 +162,6 @@ const MARQUEE_ITEMS = [
 ];
 
 function Marquee() {
-  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
   return (
     <div className="relative w-full overflow-hidden py-4 border-y border-zinc-800/60">
       <div className="absolute left-0 top-0 bottom-0 w-24 bg-linear-to-r from-black to-transparent z-10" />
@@ -209,11 +170,15 @@ function Marquee() {
         className="flex gap-10 whitespace-nowrap"
         style={{
           animation: "marquee 28s linear infinite",
-          width: "max-content",
         }}
       >
-        {items.map((item, i) => (
-          <span key={i} className="text-zinc-500 text-sm font-medium tracking-wide">
+        {MARQUEE_ITEMS.map((item) => (
+          <span key={`original-${item}`} className="text-zinc-500 text-sm font-medium tracking-wide">
+            {item}
+          </span>
+        ))}
+        {MARQUEE_ITEMS.map((item) => (
+          <span key={`copy-${item}`} className="text-zinc-500 text-sm font-medium tracking-wide">
             {item}
           </span>
         ))}
@@ -249,22 +214,6 @@ export default function LandingPage() {
     75,
     1800,
   );
-
-  // Start the counters only once the stats block is actually on screen.
-  const statsRef = useRef(null);
-  const [statsStarted, setStatsStarted] = useState(false);
-  useEffect(() => {
-    const el = statsRef.current;
-    if (!el) {return;}
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {setStatsStarted(true);}
-      },
-      { threshold: 0.3 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
 
   return (
     <div className="flex flex-col items-center bg-black overflow-x-hidden min-h-screen relative">

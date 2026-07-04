@@ -8,7 +8,7 @@ import { User } from '@/lib/db/models/User'
 import connectToDB from '@/lib/db/mongoose'
 
 // This endpoint aggregates the numbers the dashboard needs without making the client query multiple collections.
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     // Stats are per-user, so we always start by confirming the caller owns the account.
     const session = await auth.api.getSession({ headers: await headers() })

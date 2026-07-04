@@ -27,4 +27,4 @@ const ActivitySchema = new Schema<IActivity>(
   { timestamps: true }
 );
 
-export const Activity: Model<IActivity> = mongoose.models.Activity || mongoose.model<IActivity>('Activity', ActivitySchema);
+export const Activity: Model<IActivity> = (mongoose.models.Activity as Model<IActivity>) || mongoose.model<IActivity>('Activity', ActivitySchema);

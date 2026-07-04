@@ -226,11 +226,13 @@ export function PasswordSection() {
             }
             className="w-full cursor-pointer h-10"
           >
-            {isChangingPassword ? (
+            {isChangingPassword && (
               <LoaderIcon className="size-4 animate-spin" />
-            ) : hasPassword ? (
+            )}
+            {!isChangingPassword && hasPassword && (
               "Update Password"
-            ) : (
+            )}
+            {!isChangingPassword && !hasPassword && (
               "Set Password"
             )}
           </Button>

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
   let body: { newPassword?: unknown };
   try {
-    body = await req.json();
+    body = (await req.json()) as { newPassword?: unknown };
   } catch {
     return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
   }

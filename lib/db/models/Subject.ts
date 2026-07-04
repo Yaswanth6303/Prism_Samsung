@@ -74,4 +74,4 @@ SubjectSchema.pre('save', function () {
   }
 });
 
-export const Subject: Model<ISubject> = mongoose.models.Subject || mongoose.model<ISubject>('Subject', SubjectSchema);
+export const Subject: Model<ISubject> = (mongoose.models.Subject as Model<ISubject>) || mongoose.model<ISubject>('Subject', SubjectSchema);

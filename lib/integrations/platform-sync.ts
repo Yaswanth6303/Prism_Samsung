@@ -103,7 +103,23 @@ async function fetchGitHubGraphQLHistory(username: string, pat: string): Promise
     })
 
     if (!response.ok) {return history}
-    const json = await response.json()
+    type GraphQLResponse = {
+      data?: {
+        user?: {
+          contributionsCollection?: {
+            contributionCalendar?: {
+              weeks?: {
+                contributionDays?: {
+                  date: string;
+                  contributionCount: number;
+                }[];
+              }[];
+            };
+          };
+        };
+      };
+    };
+    const json = (await response.json()) as GraphQLResponse
     const weeks = json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? []
     for (const week of weeks) {
       for (const day of week.contributionDays ?? []) {

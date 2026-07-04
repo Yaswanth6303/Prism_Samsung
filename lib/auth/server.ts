@@ -7,6 +7,7 @@ import { getOTPEmail } from "@/components/emails/otp";
 import { getResetPasswordEmail } from "@/components/emails/reset-password";
 import { getVerifyEmailEmail } from "@/components/emails/verify-email";
 import { db } from "@/lib/db/mongo-client";
+import { env } from "@/lib/env";
 import { resend } from "@/lib/integrations/resend";
 
 // Central auth config keeps sign-in, verification, and password reset behavior in one place.
@@ -18,7 +19,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL as string,
+        from: env.RESEND_FROM_EMAIL,
         to: user.email,
         subject: "Reset your password",
         html: getResetPasswordEmail({ name: user.name || "there", url }),
@@ -30,17 +31,14 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     // The verification email is generated from a shared template so product copy stays consistent.
     sendVerificationEmail: async ({ user, url }) => {
-      console.log(`[Email Verification] Sending to: ${user.email}, URL: ${url}`);
-      const { data, error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL as string,
+      const { error } = await resend.emails.send({
+        from: env.RESEND_FROM_EMAIL,
         to: user.email,
         subject: "Verify your email address",
         html: getVerifyEmailEmail({ name: user.name || "there", url }),
       });
       if (error) {
         console.error("[Email Verification] Failed:", error);
-      } else {
-        console.log("[Email Verification] Sent successfully, ID:", data?.id);
       }
     },
   },
@@ -53,12 +51,12 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
     github: {
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
     },
   },
   plugins: [
@@ -66,9 +64,9 @@ export const auth = betterAuth({
     lastLoginMethod(),
     // OTP email login is a separate path, so we keep its config close to the rest of auth.
     emailOTP({
-      sendVerificationOTP: async ({ email, otp, type }) => {
+      sendVerificationOTP: async ({ email, otp }) => {
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL as string,
+          from: env.RESEND_FROM_EMAIL,
           to: email,
           subject: "Your verification code",
           html: getOTPEmail({ otp }),

@@ -122,15 +122,17 @@ export function SessionsSection({ currentSessionToken }: SessionsSectionProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {isLoadingSessions ? (
+        {isLoadingSessions && (
           <div className="flex items-center justify-center py-8">
             <LoaderIcon className="size-5 animate-spin text-muted-foreground" />
           </div>
-        ) : sessions.length === 0 ? (
+        )}
+        {!isLoadingSessions && sessions.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No active sessions found.
           </p>
-        ) : (
+        )}
+        {!isLoadingSessions && sessions.length > 0 && (
           <div className="space-y-3">
             {sessions.map((s) => {
               const isCurrentSession = s.token === currentSessionToken;

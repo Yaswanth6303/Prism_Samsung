@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-import type { FilterQuery } from 'mongoose'
+import mongoose from 'mongoose'
 import { z } from 'zod'
 
 import { auth } from '@/lib/auth/server'
@@ -11,6 +11,8 @@ import { User } from '@/lib/db/models/User'
 import connectToDB from '@/lib/db/mongoose'
 import { pointsFor } from '@/lib/services/points'
 import { updateStreakFromLogs } from '@/lib/services/streak'
+
+import type { FilterQuery } from 'mongoose'
 
 // Normalized activity shape returned to the UI so cards and feeds can render one list consistently.
 type ActivityEvent = {
@@ -93,8 +95,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
     const userId = session.user.id
-    console.log("Activities POST by user:", userId)
-    const body = await request.json()
+    const body: unknown = await request.json()
     const parsed = ActivitySchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ ok: false, error: parsed.error.format() }, { status: 400 })
@@ -104,97 +105,86 @@ export async function POST(request: Request) {
     const { type, title, value, details } = parsed.data
     const todayStr = new Date().toISOString().slice(0, 10)
     const dateStr = parsed.data.date || todayStr
-    console.log("Parsed activity data:", { type, title, value, details, dateStr })
 
     await connectToDB()
-  
-  // Convert the submitted activity type into the scoring model the rest of the app uses.
+
+    // Convert the submitted activity type into the scoring model the rest of the app uses.
     let pts = 0;
     if (type === 'gym') {pts = pointsFor('gym_session', value)}
     else if (type === 'jogging') {pts = pointsFor('jog_per_km', value)}
     else if (type === 'github') {pts = pointsFor('github_commit', value)}
-    else if (type === 'leetcode') {pts = pointsFor('leetcode_easy', value)} // rough approx
+    else if (type === 'leetcode') {pts = pointsFor('leetcode_easy', value)}
     else {pts = value}
 
-    const activityEvent = new Activity({
-      userId,
-      type,
-      title,
-      details,
-      date: new Date(dateStr),
-      points: pts,
-    })
-    await activityEvent.save()
+    // Everything below either all commits or all rolls back — otherwise a mid-flight crash
+    // could leave the user with an activity row but no matching points/streak update.
+    const dbSession = await mongoose.startSession()
+    let activityEvent: IActivity | null = null
 
-    const user = await User.findById(userId)
-      .select('totalPoints currentStreak longestStreak gymSessions joggingDistance leetcodeSolved githubContributions')
-      .lean<{
-        totalPoints?: number
-        currentStreak?: number
-        longestStreak?: number
-        gymSessions?: number
-        joggingDistance?: number
-        leetcodeSolved?: number
-        githubContributions?: number
-      } | null>()
+    try {
+      await dbSession.withTransaction(async () => {
+        activityEvent = await new Activity({
+          userId,
+          type,
+          title,
+          details,
+          date: new Date(dateStr),
+          points: pts,
+        }).save({ session: dbSession })
 
-    if (!user) {
-      return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 })
+        const user = await User.findById(userId)
+          .select('currentStreak longestStreak')
+          .session(dbSession)
+          .lean<{ currentStreak?: number; longestStreak?: number } | null>()
+
+        if (!user) {
+          // Throw a sentinel so withTransaction rolls back the Activity insert.
+          throw new Error('USER_NOT_FOUND')
+        }
+
+        await DailyActivityLog.findOneAndUpdate(
+          { userId, date: dateStr },
+          { $set: { hasActivity: true }, $inc: { totalCount: 1 } },
+          { new: true, upsert: true, session: dbSession }
+        )
+
+        const dailyLogs = await DailyActivityLog.find({ userId }).session(dbSession).lean()
+        const { currentStreak, bestStreak } = updateStreakFromLogs({
+          userId,
+          logs: dailyLogs.map((log) => ({
+            userId: log.userId,
+            date: log.date,
+            hasActivity: log.hasActivity,
+            totalCount: log.totalCount,
+          })),
+          currentStreak: user.currentStreak ?? 0,
+          bestStreak: user.longestStreak ?? 0,
+          today: new Date(`${dateStr}T00:00:00.000Z`),
+        })
+
+        const $inc: Record<string, number> = { totalPoints: pts }
+        if (type === 'gym') {$inc.gymSessions = 1}
+        if (type === 'jogging') {$inc.joggingDistance = value}
+        if (type === 'leetcode') {$inc.leetcodeSolved = value}
+        if (type === 'github') {$inc.githubContributions = value}
+
+        await User.updateOne(
+          { _id: userId },
+          { $inc, $set: { currentStreak, longestStreak: bestStreak } },
+          { session: dbSession }
+        )
+      })
+    } finally {
+      await dbSession.endSession()
     }
-    console.log("User before update:", {
-      totalPoints: user.totalPoints,
-      currentStreak: user.currentStreak,});
-
-    // Every manual activity marks that day as active so the streak engine can do its job.
-    await DailyActivityLog.findOneAndUpdate(
-      { userId, date: dateStr },
-      { $set: { hasActivity: true }, $inc: { totalCount: 1 } },
-      { new: true, upsert: true }
-    )
-
-    const dailyLogs = await DailyActivityLog.find({ userId }).lean()
-    const { currentStreak, bestStreak } = updateStreakFromLogs({
-      userId,
-      logs: dailyLogs.map((log) => ({
-        userId: log.userId,
-    // Build the atomic increments separately so each activity type updates only the counters it owns.
-        date: log.date,
-        hasActivity: log.hasActivity,
-        totalCount: log.totalCount,
-      })),
-      currentStreak: user.currentStreak ?? 0,
-      bestStreak: user.longestStreak ?? 0,
-      today: new Date(`${dateStr}T00:00:00.000Z`),
-    })
-    console.log("Daily logs:", dailyLogs)
-    console.log("Updated user streaks:", { currentStreak, bestStreak })
-
-    const $inc: Record<string, number> = {
-      totalPoints: pts,
-    }
-    if (type === 'gym') {$inc.gymSessions = 1}
-    if (type === 'jogging') {$inc.joggingDistance = value}
-    if (type === 'leetcode') {$inc.leetcodeSolved = value}
-    if (type === 'github') {$inc.githubContributions = value}
-
-    await User.updateOne(
-      { _id: userId },
-      {
-        $inc,
-        $set: {
-          currentStreak,
-          longestStreak: bestStreak,
-        },
-      }
-    )
 
     return NextResponse.json({ ok: true, activity: activityEvent, pointsAwarded: pts })
   } catch (error) {
+    if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+      return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 })
+    }
     // Keep the response generic and only log the detailed failure for server-side debugging.
     console.error('Activities POST Error:', error)
-    if (error instanceof Error) {
-      console.error('Activities POST Error Stack:', error.stack)
-    }
     return NextResponse.json({ ok: false, error: 'Internal Server Error' }, { status: 500 })
   }
 }
